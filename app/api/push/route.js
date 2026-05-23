@@ -20,7 +20,6 @@ export async function POST(req) {
 
     const result = await callPush({ prompt, text });
 
-    // Fire-and-forget logging — don't block the response on this
     try {
       const wordCount = text.trim().split(/\s+/).filter(Boolean).length;
       await Promise.all([
@@ -31,7 +30,7 @@ export async function POST(req) {
           entry_word_count: wordCount,
           response: result,
           depth_label: result.depthLabel,
-          challenge_count: result.challenges?.length || 0,
+          challenge_count: result.stayedShallow?.length || 0,
           prompt_version: PROMPT_VERSION,
         }),
         supabaseAdmin.from('sessions').upsert(
