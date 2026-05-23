@@ -1,0 +1,77 @@
+/* app/globals.css */
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background-color: #F4F4F1;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.04 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  color: #161616;
+  font-family: 'Inter Tight', -apple-system, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.serif { font-family: 'Newsreader', Georgia, serif; }
+
+textarea, input, button { font-family: inherit; }
+
+textarea::placeholder, input::placeholder { color: #A8A8A4; }
+
+label, .caps {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #A8A8A4;
+  font-weight: 500;
+  display: block;
+}
+
+.push-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 56px;
+}
+
+@media (min-width: 900px) {
+  .push-grid {
+    grid-template-columns: 1.4fr 1fr;
+    gap: 72px;
+  }
+  .push-aside {
+    border-left: 1px solid #D9D9D4;
+    padding-left: 56px;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.fade-in { animation: fadeIn 0.5s ease-out both; }
+.stag-1 { animation-delay: 0.05s; }
+.stag-2 { animation-delay: 0.15s; }
+.stag-3 { animation-delay: 0.25s; }
+.stag-4 { animation-delay: 0.35s; }
+.stag-5 { animation-delay: 0.45s; }
+
+.push-btn {
+  background: #161616;
+  color: #F4F4F1;
+  border: none;
+  padding: 13px 24px;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  transition: background 0.15s, transform 0.1s;
+}
+.push-btn:hover:not(:disabled) { background: #2a2a2a; }
+.push-btn:active:not(:disabled) { transform: translateY(1px); }
+.push-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+.spin { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
