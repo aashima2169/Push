@@ -23,7 +23,7 @@ export async function POST(req) {
     try {
       const wordCount = text.trim().split(/\s+/).filter(Boolean).length;
       await Promise.all([
-        supabaseAdmin.from('pushes').insert({
+        supabaseAdmin.from('push_events').insert({
           visitor_id: visitorId || 'unknown',
           prompt,
           entry_text: text,
@@ -33,7 +33,7 @@ export async function POST(req) {
           challenge_count: result.stayedShallow?.length || 0,
           prompt_version: PROMPT_VERSION,
         }),
-        supabaseAdmin.from('sessions').upsert(
+        supabaseAdmin.from('push_sessions').upsert(
           {
             visitor_id: visitorId || 'unknown',
             last_seen_at: new Date().toISOString(),
