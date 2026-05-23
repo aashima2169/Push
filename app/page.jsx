@@ -18,8 +18,8 @@ function getVisitorId() {
 }
 
 const sectionStyles = {
-  deep:    { color: '#059669', bg: '#D1FAE5', cardBg: '#F0FDF4', border: '#10B981', icon: CheckCircle2, label: 'Where you went deep' },
-  shallow: { color: '#E11D48', bg: '#FFE4E6', cardBg: '#FFF1F2', border: '#F43F5E', icon: Telescope,    label: 'Where you stayed shallow' },
+  deep:    { color: '#059669', bg: '#D1FAE5', cardBg: '#F0FDF4', border: '#10B981', icon: CheckCircle2, label: 'Where you went deeper' },
+  shallow: { color: '#E11D48', bg: '#FFE4E6', cardBg: '#FFF1F2', border: '#F43F5E', icon: Telescope,    label: 'Where you stayed on the surface' },
   biases:  { color: '#D97706', bg: '#FEF3C7', cardBg: '#FFFBEB', border: '#F59E0B', icon: Brain,        label: 'Biases showing up' },
   next:    { color: '#4F46E5', bg: '#E0E7FF', cardBg: '#EEF2FF', border: '#6366F1', icon: MoveRight,    label: 'Next move' },
 };
@@ -37,6 +37,36 @@ const patternColors = {
   'Unexamined premise':'#475569',
   Restating:           '#7C2D12',
 };
+
+// SVG thought bubble illustration for the hero
+function ThoughtBubble() {
+  return (
+    <svg width="180" height="180" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
+      <defs>
+        <linearGradient id="bubble-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#A78BFA" />
+          <stop offset="100%" stopColor="#7C3AED" />
+        </linearGradient>
+        <linearGradient id="bubble-fill" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#FFFFFF" />
+          <stop offset="100%" stopColor="#EEF2FF" />
+        </linearGradient>
+      </defs>
+      {/* Main thought bubble */}
+      <ellipse cx="110" cy="80" rx="70" ry="55" fill="url(#bubble-fill)" stroke="url(#bubble-grad)" strokeWidth="3" />
+      {/* Small trailing bubble */}
+      <circle cx="55" cy="145" r="14" fill="url(#bubble-fill)" stroke="url(#bubble-grad)" strokeWidth="2.5" />
+      {/* Smallest trailing bubble */}
+      <circle cx="30" cy="170" r="7" fill="url(#bubble-fill)" stroke="url(#bubble-grad)" strokeWidth="2" />
+      {/* Sparkle inside main bubble - left */}
+      <path d="M85 70 L88 78 L96 81 L88 84 L85 92 L82 84 L74 81 L82 78 Z" fill="#7C3AED" />
+      {/* Sparkle inside main bubble - right */}
+      <path d="M130 85 L132 90 L137 92 L132 94 L130 99 L128 94 L123 92 L128 90 Z" fill="#A78BFA" />
+      {/* Small dot */}
+      <circle cx="110" cy="60" r="3" fill="#C4B5FD" />
+    </svg>
+  );
+}
 
 function SectionBadge({ kind }) {
   const s = sectionStyles[kind];
@@ -135,32 +165,26 @@ export default function Page() {
 
   return (
     <div>
-      {/* Top nav */}
+      {/* Top nav — wordmark only, no version pill */}
       <header style={{
         padding: '24px 32px', display: 'flex', alignItems: 'center',
-        justifyContent: 'space-between', maxWidth: '1200px', margin: '0 auto',
+        maxWidth: '1200px', margin: '0 auto',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div style={{
-            width: '36px', height: '36px', borderRadius: '10px',
+            width: '42px', height: '42px', borderRadius: '12px',
             background: 'linear-gradient(135deg, #1E1B4B 0%, #312E81 100%)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
-            <Sparkles size={18} color="#A78BFA" strokeWidth={2.5} />
+            <Sparkles size={22} color="#A78BFA" strokeWidth={2.5} />
           </div>
           <span style={{
-            fontSize: '22px', fontWeight: 800,
+            fontSize: '28px', fontWeight: 800,
             background: 'linear-gradient(135deg, #4F46E5, #7C3AED)',
             WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
             letterSpacing: '-0.02em',
           }}>Push</span>
         </div>
-        <div style={{
-          fontSize: '11px', fontWeight: 700, color: '#6366F1',
-          letterSpacing: '0.1em', textTransform: 'uppercase',
-          background: 'white', padding: '6px 12px', borderRadius: '999px',
-          boxShadow: '0 1px 2px rgba(15, 23, 42, 0.04)',
-        }}>v0.4 · beta</div>
       </header>
 
       {/* Hero card */}
@@ -168,7 +192,16 @@ export default function Page() {
         <div style={{
           background: 'linear-gradient(180deg, #EFF0FA 0%, #E5E7F9 100%)',
           borderRadius: '32px', padding: 'clamp(32px, 5vw, 56px)',
+          position: 'relative', overflow: 'hidden',
         }}>
+          {/* Decorative illustration in upper right */}
+          <div style={{
+            position: 'absolute', right: '32px', top: '32px',
+            display: 'none',
+          }} className="hero-illustration">
+            <ThoughtBubble />
+          </div>
+
           {/* Status pill */}
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: '10px',
@@ -184,10 +217,15 @@ export default function Page() {
             }}>Ready when you are</span>
           </div>
 
+          {/* Mobile illustration — shows above headline on small screens */}
+          <div className="hero-illustration-mobile" style={{ display: 'block', marginBottom: '20px' }}>
+            <ThoughtBubble />
+          </div>
+
           <h1 style={{
             fontSize: 'clamp(36px, 5.5vw, 60px)', fontWeight: 800,
             lineHeight: 1.05, letterSpacing: '-0.03em', color: '#0F172A',
-            margin: '0 0 18px',
+            margin: '0 0 18px', maxWidth: '780px',
           }}>
             Push back on{' '}
             <span style={{
@@ -198,15 +236,15 @@ export default function Page() {
 
           <p style={{
             fontSize: '18px', lineHeight: 1.55, color: '#475569',
-            margin: '0 0 40px', maxWidth: '640px',
+            margin: '0 0 40px', maxWidth: '620px',
           }}>
             The opposite of autocomplete. Write what you're thinking, and Push tells you{' '}
-            <strong style={{ color: '#0F172A' }}>where you actually thought</strong>
+            <strong style={{ color: '#0F172A' }}>where you actually went deeper</strong>
             {' — and '}
-            <strong style={{ color: '#0F172A' }}>where you just typed</strong>.
+            <strong style={{ color: '#0F172A' }}>where you stayed on the surface or borrowed a thought</strong>.
           </p>
 
-          <label htmlFor="topic" className="push-label">What are you thinking about?</label>
+          <label htmlFor="topic" className="push-label">The topic or belief you want to examine</label>
           <input
             id="topic" type="text" value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
@@ -214,7 +252,18 @@ export default function Page() {
             className="push-input"
           />
 
-          <label htmlFor="thinking" className="push-label" style={{ marginTop: '24px' }}>Your thinking</label>
+          {/* Textarea label row with word count on the right */}
+          <div style={{
+            display: 'flex', alignItems: 'baseline', justifyContent: 'space-between',
+            marginTop: '28px', marginBottom: '10px',
+          }}>
+            <label htmlFor="thinking" className="push-label" style={{ margin: 0 }}>Your thinking</label>
+            {wordCount > 0 && (
+              <span style={{ fontSize: '12px', color: '#64748B', fontWeight: 500 }}>
+                {wordCount} word{wordCount === 1 ? '' : 's'}
+              </span>
+            )}
+          </div>
           <textarea
             id="thinking" value={text}
             onChange={(e) => setText(e.target.value)}
@@ -234,11 +283,6 @@ export default function Page() {
                 <><Sparkles size={16} strokeWidth={2.5} /> help me think better <ArrowRight size={16} strokeWidth={2.5} /></>
               )}
             </button>
-            {wordCount > 0 && (
-              <span style={{ fontSize: '13px', color: '#64748B', fontWeight: 500 }}>
-                {wordCount} word{wordCount === 1 ? '' : 's'} written
-              </span>
-            )}
           </div>
 
           {error && (
@@ -279,7 +323,6 @@ export default function Page() {
             padding: 'clamp(32px, 5vw, 56px)',
             boxShadow: '0 4px 24px rgba(15, 23, 42, 0.04)',
           }}>
-            {/* Depth pill */}
             {depth && (
               <div style={{
                 display: 'inline-flex', alignItems: 'center', gap: '8px',
