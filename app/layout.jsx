@@ -3,8 +3,8 @@ import { Analytics } from '@vercel/analytics/react';
 import './globals.css';
 
 export const metadata = {
-  title: 'Push — think deeper, not faster',
-  description: 'The opposite of autocomplete. An AI that interrupts your thinking with uncomfortable questions instead of finishing your sentences.',
+  title: 'Push — help me think better',
+  description: 'The opposite of autocomplete. An AI that tells you where you actually thought, and where you just typed.',
 };
 
 export default function RootLayout({ children }) {
@@ -14,7 +14,7 @@ export default function RootLayout({ children }) {
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link
-          href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&family=Inter+Tight:wght@300..700&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
           rel="stylesheet"
         />
       </head>
