@@ -20,29 +20,42 @@ export async function POST(req) {
 
     const result = await callPush({ prompt, text });
 
+    // Logging — verbose error reporting so Vercel logs show exactly what failed
     try {
       const wordCount = text.trim().split(/\s+/).filter(Boolean).length;
-      await Promise.all([
-        supabaseAdmin.from('push_events').insert({
-          visitor_id: visitorId || 'unknown',
-          prompt,
-          entry_text: text,
-          entry_word_count: wordCount,
-          response: result,
-          depth_label: result.depthLabel,
-          challenge_count: result.stayedShallow?.length || 0,
-          prompt_version: PROMPT_VERSION,
-        }),
-        supabaseAdmin.from('push_sessions').upsert(
-          {
-            visitor_id: visitorId || 'unknown',
-            last_seen_at: new Date().toISOString(),
-          },
+
+      const { error: pushErr } = await supabaseAdmin.from('pushes').insert({
+        visitor_id: visitorId || 'unknown',
+        prompt,
+        entry_text: text,
+        entry_word_count: wordCount,
+        response: result,
+        depth_label: result.depthLabel,
+        challenge_count: result.stayedShallow?.length || 0,
+        prompt_version: PROMPT_VERSION,
+      });
+      if (pushErr) {
+        console.error('=== SUPABASE INSERT (pushes) FAILED ===');
+        console.error('Code:', pushErr.code, '| Message:', pushErr.message);
+        console.error('Details:', pushErr.details);
+        console.error('Hint:', pushErr.hint);
+      } else {
+        console.log('Supabase push logged successfully');
+      }
+
+      const { error: sessErr } = await supabaseAdmin
+        .from('sessions')
+        .upsert(
+          { visitor_id: visitorId || 'unknown', last_seen_at: new Date().toISOString() },
           { onConflict: 'visitor_id', ignoreDuplicates: false }
-        ),
-      ]);
+        );
+      if (sessErr) {
+        console.error('=== SUPABASE UPSERT (sessions) FAILED ===');
+        console.error('Code:', sessErr.code, '| Message:', sessErr.message);
+        console.error('Details:', sessErr.details);
+      }
     } catch (logErr) {
-      console.error('Logging error (non-fatal):', logErr);
+      console.error('Logging crashed (non-fatal):', logErr.message);
     }
 
     return NextResponse.json(result);
