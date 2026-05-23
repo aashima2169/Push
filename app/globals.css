@@ -35,6 +35,18 @@ textarea::placeholder, input::placeholder { color: #94A3B8; }
 }
 .pulse-dot { animation: pulse-glow 2s ease-in-out infinite; }
 
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+.hero-illustration { animation: float 4s ease-in-out infinite; }
+
+/* Hide mobile illustration on desktop, show desktop illustration */
+@media (min-width: 900px) {
+  .hero-illustration { display: block !important; }
+  .hero-illustration-mobile { display: none !important; }
+}
+
 .push-cta {
   background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
   color: white;
