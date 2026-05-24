@@ -1,7 +1,10 @@
 // app/about/page.jsx
 'use client';
 
-import { ArrowLeft } from 'lucide-react';
+import {
+  ArrowLeft, Sparkles, CheckCircle2, Telescope, Brain, MoveRight, ArrowUpRight,
+  NotebookPen, Keyboard,
+} from 'lucide-react';
 
 function PushLogo({ size = 28 }) {
   return (
@@ -19,7 +22,44 @@ function PushLogo({ size = 28 }) {
   );
 }
 
+// Hardcoded example based on the founder's actual notebook entry
+const EXAMPLE = {
+  topic: "Expectation is the root cause of suffering",
+  depthLabel: 'Probing',
+  summary: "You challenged the premise by identifying expectation's functional roles, then closed too neatly with an undefined ideal.",
+  wentDeep: [
+    { quote: "Underlying assumptions behind this", tag: "Source attribution" },
+    { quote: "Expectation keeps things mutual, fair but also transactional", tag: "First-principles reasoning" },
+    { quote: "Would you still be hurt if they did more than what you expected?", tag: "Real diagnostic question" },
+  ],
+  stayedShallow: [
+    {
+      pattern: 'Unexamined premise',
+      targetPhrase: "they don't hold true in unconditional love",
+      challenge: "What is 'unconditional love' to you, concretely? Have you experienced it without ANY expectation, not even of presence or care?",
+    },
+  ],
+  biases: [
+    {
+      name: 'closure bias',
+      evidence: "Expectations are conditional, they don't hold true in unconditional love",
+    },
+  ],
+  nextMoves: [
+    { prompt: "Unconditional love is expectation that has been hidden from view", framing: "Test whether your tidy resolution holds up." },
+    { prompt: "Expectations from myself drive most of my hard work", framing: "Examine the positive case you started but did not develop." },
+  ],
+};
+
+const depthColors = {
+  Surface: { color: '#E11D48', bg: '#FFE4E6' },
+  Probing: { color: '#D97706', bg: '#FEF3C7' },
+  'Going deeper': { color: '#059669', bg: '#D1FAE5' },
+};
+
 export default function AboutPage() {
+  const depth = depthColors[EXAMPLE.depthLabel];
+
   return (
     <div>
       <header style={{
@@ -53,7 +93,7 @@ export default function AboutPage() {
         </a>
       </header>
 
-      <div style={{ padding: '24px 32px 96px', maxWidth: '720px', margin: '0 auto' }}>
+      <div className="about-wrap" style={{ padding: '24px 32px 96px', maxWidth: '760px', margin: '0 auto' }}>
         <h1 style={{
           fontSize: 'clamp(32px, 4.5vw, 48px)',
           fontWeight: 800,
@@ -83,7 +123,7 @@ export default function AboutPage() {
             borderLeft: '4px solid #6366F1',
             borderRadius: '16px',
             padding: '24px 28px',
-            marginBottom: '40px',
+            marginBottom: '56px',
           }}>
             <p style={{
               fontSize: '18px',
@@ -96,94 +136,323 @@ export default function AboutPage() {
             </p>
           </div>
 
+          {/* === STORYTELLING SECTION === */}
           <h2 style={{
-            fontSize: '24px',
+            fontSize: '26px',
             fontWeight: 700,
             color: '#0F172A',
-            margin: '40px 0 16px',
+            margin: '0 0 12px',
             letterSpacing: '-0.015em',
           }}>
-            How it works
+            Here's what it looked like for me
           </h2>
 
-          <p style={{ marginBottom: '20px' }}>
-            You write what you're thinking about. A belief, a half-formed argument, a journal entry, a strategy doc, whatever you'd write to think something through.
+          <p style={{ marginBottom: '32px', color: '#475569' }}>
+            One morning I sat with a sentence I'd been carrying for years without questioning. <em>Expectation is the root cause of suffering.</em> Where did I get this? Did I actually believe it? I opened a notebook.
           </p>
 
-          <p style={{ marginBottom: '16px' }}>
-            Push reads it back and tells you three things:
-          </p>
-
-          <ul style={{
-            margin: '0 0 24px',
-            padding: 0,
-            listStyle: 'none',
+          {/* Notebook images */}
+          <div className="notebook-grid" style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: '12px',
+            marginBottom: '20px',
           }}>
-            <li style={{
-              display: 'flex',
-              alignItems: 'flex-start',
-              gap: '12px',
-              marginBottom: '12px',
-              fontSize: '17px',
-              lineHeight: 1.55,
-            }}>
-              <span style={{
-                display: 'inline-block',
-                width: '8px',
-                height: '8px',
-                borderRadius: '50%',
-                background: '#10B981',
-                marginTop: '10px',
-                flexShrink: 0,
-              }} />
-              <span><strong style={{ color: '#0F172A' }}>Where you reasoned from first principles.</strong> The moments your thinking was actually yours.</span>
-            </li>
-            <li style={{
-              display: 'flex',
-              alignItems: 'flex-start',
-              gap: '12px',
-              marginBottom: '12px',
-              fontSize: '17px',
-              lineHeight: 1.55,
-            }}>
-              <span style={{
-                display: 'inline-block',
-                width: '8px',
-                height: '8px',
-                borderRadius: '50%',
-                background: '#F43F5E',
-                marginTop: '10px',
-                flexShrink: 0,
-              }} />
-              <span><strong style={{ color: '#0F172A' }}>Where you stayed at the surface.</strong> Places you leaned on something you picked up somewhere without interrogating it.</span>
-            </li>
-            <li style={{
-              display: 'flex',
-              alignItems: 'flex-start',
-              gap: '12px',
-              marginBottom: '12px',
-              fontSize: '17px',
-              lineHeight: 1.55,
-            }}>
-              <span style={{
-                display: 'inline-block',
-                width: '8px',
-                height: '8px',
-                borderRadius: '50%',
-                background: '#F59E0B',
-                marginTop: '10px',
-                flexShrink: 0,
-              }} />
-              <span><strong style={{ color: '#0F172A' }}>What cognitive biases are showing up.</strong> Confirmation bias, closure bias, survivorship bias, whatever's quietly distorting your reasoning right now.</span>
-            </li>
-          </ul>
+            <img
+              src="/notebook-page-1.jpg"
+              alt="Handwritten journal page exploring 'Expectation is the root cause of suffering'. Lists of underlying assumptions and blind spots."
+              style={{
+                width: '100%',
+                height: 'auto',
+                borderRadius: '14px',
+                border: '1px solid #E2E8F0',
+                boxShadow: '0 4px 14px rgba(15, 23, 42, 0.06)',
+                display: 'block',
+              }}
+            />
+            <img
+              src="/notebook-page-2.jpg"
+              alt="Second handwritten page continuing the thinking. What expectations make us feel, and when they break down."
+              style={{
+                width: '100%',
+                height: 'auto',
+                borderRadius: '14px',
+                border: '1px solid #E2E8F0',
+                boxShadow: '0 4px 14px rgba(15, 23, 42, 0.06)',
+                display: 'block',
+              }}
+            />
+          </div>
 
-          <p style={{ marginBottom: '20px' }}>
-            Then, where Push finds you thinking at the surface, it gives you specific prompts to keep going. Each one is tied to a contradiction or unexamined assumption from what you just wrote. Click one, write again, push back again. Over time, this builds the mental muscle of catching your own surface-level thinking before Push has to point it out.
+          <p style={{
+            fontSize: '14px',
+            color: '#94A3B8',
+            fontStyle: 'italic',
+            marginBottom: '40px',
+            textAlign: 'center',
+          }}>
+            Twenty minutes later, I had two pages of half-formed thoughts. Some real, some borrowed. I couldn't tell which were which.
           </p>
 
-          <p style={{ marginBottom: '40px' }}>
-            The loop is the product.
+          {/* Transition: typed it in */}
+          <div style={{
+            background: '#F8FAFC',
+            borderRadius: '16px',
+            padding: '20px 24px',
+            marginBottom: '24px',
+            border: '1px solid #E2E8F0',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '14px',
+          }} className="typed-it-box">
+            <div style={{
+              width: '40px', height: '40px', borderRadius: '10px',
+              background: 'linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              flexShrink: 0,
+            }}>
+              <Keyboard size={18} color="#4F46E5" strokeWidth={2.5} />
+            </div>
+            <div style={{ fontSize: '14px', color: '#475569', lineHeight: 1.55 }}>
+              <strong style={{ color: '#0F172A' }}>Then I typed it into Push.</strong> No photo upload yet. Re-typing is part of the practice. You decide what's worth keeping.
+            </div>
+          </div>
+
+          <p style={{ marginBottom: '24px', color: '#475569' }}>
+            Here's what Push said back:
+          </p>
+
+          {/* === RENDERED PUSH ANALYSIS CARD === */}
+          <div style={{
+            background: 'white',
+            borderRadius: '24px',
+            padding: 'clamp(24px, 3vw, 36px)',
+            boxShadow: '0 4px 24px rgba(15, 23, 42, 0.04)',
+            border: '1px solid #E2E8F0',
+            marginBottom: '40px',
+          }} className="example-card">
+            {/* Topic header */}
+            <div style={{
+              fontSize: '11px', fontWeight: 700, letterSpacing: '0.1em',
+              textTransform: 'uppercase', color: '#94A3B8', marginBottom: '6px',
+            }}>
+              Topic
+            </div>
+            <div style={{
+              fontSize: '15px', color: '#475569', marginBottom: '24px',
+              fontWeight: 500,
+            }}>
+              {EXAMPLE.topic}
+            </div>
+
+            {/* Depth pill */}
+            <div style={{
+              display: 'inline-flex', alignItems: 'center', gap: '8px',
+              background: depth.bg, color: depth.color,
+              padding: '6px 14px', borderRadius: '999px',
+              fontSize: '13px', fontWeight: 600,
+              marginBottom: '16px',
+            }}>
+              <Sparkles size={13} strokeWidth={2.5} />
+              {EXAMPLE.depthLabel}
+            </div>
+
+            {/* Summary */}
+            <p style={{
+              fontSize: '20px', lineHeight: 1.35,
+              color: '#0F172A', margin: '0 0 32px',
+              fontWeight: 600, letterSpacing: '-0.015em',
+            }} className="example-summary">
+              {EXAMPLE.summary}
+            </p>
+
+            {/* Where you went deeper */}
+            <section style={{ marginBottom: '28px' }}>
+              <div style={{
+                display: 'inline-flex', alignItems: 'center', gap: '8px',
+                background: 'white', border: '1.5px solid #D1FAE5',
+                borderRadius: '999px', padding: '6px 14px 6px 8px',
+                marginBottom: '14px',
+              }}>
+                <div style={{
+                  width: '24px', height: '24px', borderRadius: '50%', background: '#D1FAE5',
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <CheckCircle2 size={13} color="#059669" strokeWidth={2.5} />
+                </div>
+                <span style={{ fontSize: '13px', fontWeight: 600, color: '#059669' }}>
+                  Where you went deeper
+                </span>
+                <span style={{
+                  fontSize: '11px', fontWeight: 600, color: '#059669', opacity: 0.7,
+                  background: '#D1FAE5', padding: '2px 7px', borderRadius: '999px',
+                }}>
+                  {EXAMPLE.wentDeep.length}
+                </span>
+              </div>
+              <div style={{ display: 'grid', gap: '10px' }}>
+                {EXAMPLE.wentDeep.map((d, i) => (
+                  <div key={i} style={{
+                    background: '#F0FDF4', borderRadius: '14px',
+                    padding: '12px 16px', borderLeft: '3px solid #10B981',
+                    display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap',
+                  }}>
+                    <div style={{
+                      fontSize: '11px', fontWeight: 700, color: '#059669',
+                      background: '#D1FAE5', padding: '4px 10px', borderRadius: '999px',
+                      flexShrink: 0,
+                    }}>
+                      {d.tag}
+                    </div>
+                    <div style={{ fontSize: '13px', color: '#064E3B', fontStyle: 'italic', lineHeight: 1.5, flex: 1, minWidth: '180px' }}>
+                      "{d.quote}"
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            {/* Where you stayed on the surface */}
+            <section style={{ marginBottom: '28px' }}>
+              <div style={{
+                display: 'inline-flex', alignItems: 'center', gap: '8px',
+                background: 'white', border: '1.5px solid #FFE4E6',
+                borderRadius: '999px', padding: '6px 14px 6px 8px',
+                marginBottom: '14px',
+              }}>
+                <div style={{
+                  width: '24px', height: '24px', borderRadius: '50%', background: '#FFE4E6',
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <Telescope size={13} color="#E11D48" strokeWidth={2.5} />
+                </div>
+                <span style={{ fontSize: '13px', fontWeight: 600, color: '#E11D48' }}>
+                  Where you stayed on the surface
+                </span>
+                <span style={{
+                  fontSize: '11px', fontWeight: 600, color: '#E11D48', opacity: 0.7,
+                  background: '#FFE4E6', padding: '2px 7px', borderRadius: '999px',
+                }}>
+                  {EXAMPLE.stayedShallow.length}
+                </span>
+              </div>
+              <div style={{ display: 'grid', gap: '14px' }}>
+                {EXAMPLE.stayedShallow.map((c, i) => (
+                  <div key={i} style={{
+                    background: '#FFF1F2', borderRadius: '16px',
+                    padding: '18px 22px',
+                    borderLeft: '4px solid #475569',
+                  }}>
+                    <div style={{
+                      display: 'inline-block', fontSize: '10px', fontWeight: 700,
+                      letterSpacing: '0.1em', textTransform: 'uppercase',
+                      color: '#475569', marginBottom: '10px',
+                    }}>
+                      {c.pattern}
+                    </div>
+                    <div style={{ fontSize: '13px', color: '#9F1239', fontStyle: 'italic', marginBottom: '10px', lineHeight: 1.5 }}>
+                      "{c.targetPhrase}"
+                    </div>
+                    <div style={{ fontSize: '15px', color: '#4C0519', lineHeight: 1.55 }}>
+                      {c.challenge}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            {/* Biases */}
+            <section style={{ marginBottom: '28px' }}>
+              <div style={{
+                display: 'inline-flex', alignItems: 'center', gap: '8px',
+                background: 'white', border: '1.5px solid #FEF3C7',
+                borderRadius: '999px', padding: '6px 14px 6px 8px',
+                marginBottom: '14px',
+              }}>
+                <div style={{
+                  width: '24px', height: '24px', borderRadius: '50%', background: '#FEF3C7',
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <Brain size={13} color="#D97706" strokeWidth={2.5} />
+                </div>
+                <span style={{ fontSize: '13px', fontWeight: 600, color: '#D97706' }}>
+                  Biases showing up
+                </span>
+                <span style={{
+                  fontSize: '11px', fontWeight: 600, color: '#D97706', opacity: 0.7,
+                  background: '#FEF3C7', padding: '2px 7px', borderRadius: '999px',
+                }}>
+                  {EXAMPLE.biases.length}
+                </span>
+              </div>
+              <span style={{
+                display: 'inline-flex', alignItems: 'center', gap: '6px',
+                background: '#FEF3C7', color: '#92400E',
+                borderRadius: '999px', padding: '8px 14px',
+                fontSize: '13px', fontWeight: 600,
+              }}>
+                {EXAMPLE.biases[0].name}
+              </span>
+            </section>
+
+            {/* Continue thinking */}
+            <section>
+              <div style={{
+                display: 'inline-flex', alignItems: 'center', gap: '8px',
+                background: 'white', border: '1.5px solid #E0E7FF',
+                borderRadius: '999px', padding: '6px 14px 6px 8px',
+                marginBottom: '14px',
+              }}>
+                <div style={{
+                  width: '24px', height: '24px', borderRadius: '50%', background: '#E0E7FF',
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <MoveRight size={13} color="#4F46E5" strokeWidth={2.5} />
+                </div>
+                <span style={{ fontSize: '13px', fontWeight: 600, color: '#4F46E5' }}>
+                  Continue thinking
+                </span>
+              </div>
+              <div style={{ display: 'grid', gap: '10px' }}>
+                {EXAMPLE.nextMoves.map((m, i) => (
+                  <div key={i} style={{
+                    display: 'flex', alignItems: 'center', gap: '14px',
+                    background: 'linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%)',
+                    border: '1.5px solid #C7D2FE',
+                    borderLeft: '4px solid #6366F1',
+                    borderRadius: '14px',
+                    padding: '16px 20px',
+                  }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: '15px', color: '#1E1B4B', lineHeight: 1.4, fontWeight: 600, marginBottom: '3px' }}>
+                        {m.prompt}
+                      </div>
+                      <div style={{ fontSize: '12px', color: '#6366F1', lineHeight: 1.4, fontWeight: 500 }}>
+                        {m.framing}
+                      </div>
+                    </div>
+                    <div style={{
+                      display: 'inline-flex', alignItems: 'center', gap: '4px',
+                      fontSize: '12px', fontWeight: 600, color: '#4F46E5',
+                      flexShrink: 0,
+                    }}>
+                      Start
+                      <ArrowUpRight size={12} strokeWidth={2.5} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          </div>
+
+          <p style={{
+            fontSize: '14px',
+            color: '#94A3B8',
+            fontStyle: 'italic',
+            marginBottom: '56px',
+            textAlign: 'center',
+          }}>
+            That gap between what I thought I was saying and what Push showed me I'd written. That's the product.
           </p>
 
           <h2 style={{
