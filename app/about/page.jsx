@@ -34,9 +34,12 @@ const EXAMPLE = {
   ],
   stayedShallow: [
     {
-      pattern: 'Unexamined premise',
       targetPhrase: "they don't hold true in unconditional love",
-      challenge: "What is 'unconditional love' to you, concretely? Have you experienced it without ANY expectation, not even of presence or care?",
+      challenge: "This is the moment your brain hit the comfort wall and wrapped things up with a neat, abstract bow. 'Unconditional love' sounds like a profound conclusion but it is actually a surface-level escape hatch — it lets you off the hook from applying this to your own life. When have you actually tried to love someone with no expectations? What happened?",
+    },
+    {
+      targetPhrase: "Would you still be hurt if they did more than what you expected?",
+      challenge: "You asked the most interesting question in your entire entry and then moved on without answering it. What is your actual answer?",
     },
   ],
   biases: [
@@ -307,7 +310,7 @@ export default function AboutPage() {
               </div>
             </section>
 
-            {/* Where you stayed on the surface */}
+            {/* Where your brain hit the wall */}
             <section style={{ marginBottom: '28px' }}>
               <div style={{
                 display: 'inline-flex', alignItems: 'center', gap: '8px',
@@ -322,7 +325,7 @@ export default function AboutPage() {
                   <Telescope size={13} color="#E11D48" strokeWidth={2.5} />
                 </div>
                 <span style={{ fontSize: '13px', fontWeight: 600, color: '#E11D48' }}>
-                  Where you stayed on the surface
+                  Where your brain hit the wall
                 </span>
                 <span style={{
                   fontSize: '11px', fontWeight: 600, color: '#E11D48', opacity: 0.7,
@@ -398,7 +401,7 @@ export default function AboutPage() {
                   <MoveRight size={13} color="#4F46E5" strokeWidth={2.5} />
                 </div>
                 <span style={{ fontSize: '13px', fontWeight: 600, color: '#4F46E5' }}>
-                  Keep digging
+                  Push through
                 </span>
               </div>
               <div style={{ display: 'grid', gap: '10px' }}>
