@@ -13,7 +13,7 @@ export async function POST(req) {
     }
 
     const { error } = await supabaseAdmin
-      .from('pushes')
+      .from('push_events')
       .update({ feedback: rating })
       .eq('id', pushId);
 
