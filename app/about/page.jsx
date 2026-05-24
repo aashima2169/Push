@@ -1,68 +1,443 @@
-// app/about/page.jsx
+// app/page.jsx
 'use client';
 
+import { useState, useEffect, useRef } from 'react';
 import {
-  ArrowLeft, Sparkles, CheckCircle2, Telescope, Brain, MoveRight, ArrowUpRight,
-  NotebookPen, Keyboard,
+  Sparkles, ArrowRight, Loader2, Plus, Minus,
+  Telescope, Brain, MoveRight, CheckCircle2, ArrowUpRight,
+  Layers, X, ChevronDown, ChevronUp, Trash2, FileText,
 } from 'lucide-react';
 
-function PushLogo({ size = 28 }) {
+function getVisitorId() {
+  if (typeof window === 'undefined') return null;
+  let id = localStorage.getItem('push_visitor_id');
+  if (!id) {
+    id = crypto.randomUUID();
+    localStorage.setItem('push_visitor_id', id);
+  }
+  return id;
+}
+
+const STRUCTURES = [
+  {
+    name: 'Source & Counter-Cases',
+    blurb: 'Where did this come from, and where does it fail?',
+    template: `Where did this thought come from?
+
+
+The strongest case against it:
+
+
+Where my own life confirms or contradicts it:
+
+`,
+  },
+  {
+    name: '5 Whys',
+    blurb: 'Keep asking why until you hit something real.',
+    template: `Why do I believe this?
+
+
+But why that?
+
+
+And why that?
+
+
+And why that?
+
+
+Once more, why?
+
+`,
+  },
+  {
+    name: 'Steelman',
+    blurb: 'Argue both sides at their strongest.',
+    template: `The best version of the argument I'm making:
+
+
+The best version of the opposite argument:
+
+
+Which one would I bet money on, and why:
+
+`,
+  },
+  {
+    name: 'Concrete Mechanism',
+    blurb: 'Force yourself out of abstraction.',
+    template: `The specific claim, in one sentence:
+
+
+A concrete example where this is true:
+
+
+A concrete example where the opposite is true:
+
+
+The mechanism that actually explains the difference:
+
+`,
+  },
+];
+
+function textMatchesStructure(text, structureIndex) {
+  if (structureIndex === null) return false;
+  const template = STRUCTURES[structureIndex].template;
+  const headings = template.split('\n').filter(line => line.trim().length > 0);
+  if (headings.length === 0) return false;
+  const present = headings.filter(h => text.includes(h.trim())).length;
+  return present >= Math.ceil(headings.length * 0.66);
+}
+
+const sectionStyles = {
+  deep:    { color: '#059669', bg: '#D1FAE5', cardBg: '#F0FDF4', border: '#10B981', icon: CheckCircle2, label: 'Where you went deeper' },
+  shallow: { color: '#E11D48', bg: '#FFE4E6', cardBg: '#FFF1F2', border: '#F43F5E', icon: Telescope,    label: 'Where you stayed on the surface' },
+  biases:  { color: '#D97706', bg: '#FEF3C7', cardBg: '#FFFBEB', border: '#F59E0B', icon: Brain,        label: 'Biases showing up' },
+  next:    { color: '#4F46E5', bg: '#E0E7FF', cardBg: '#EEF2FF', border: '#6366F1', icon: MoveRight,    label: 'Keep digging' },
+};
+
+const depthStyles = {
+  Surface:       { color: '#E11D48', bg: '#FFE4E6' },
+  Probing:       { color: '#D97706', bg: '#FEF3C7' },
+  'Going deeper':{ color: '#059669', bg: '#D1FAE5' },
+};
+
+const patternColors = {
+  'Borrowed thought':  '#E11D48',
+  'One-sided':         '#C2410C',
+  Abstract:            '#D97706',
+  'Unexamined premise':'#475569',
+  Restating:           '#7C2D12',
+};
+
+function PushLogo({ size = 22 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
       <defs>
-        <linearGradient id="logo-grad-about" x1="0%" y1="0%" x2="100%" y2="100%">
+        <linearGradient id="logo-grad" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor="#A78BFA" />
           <stop offset="100%" stopColor="#7C3AED" />
         </linearGradient>
       </defs>
-      <circle cx="16" cy="16" r="14" stroke="url(#logo-grad-about)" strokeWidth="2.2" fill="none" opacity="0.35" />
-      <circle cx="16" cy="16" r="9" stroke="url(#logo-grad-about)" strokeWidth="2.2" fill="none" opacity="0.6" />
-      <circle cx="16" cy="16" r="4" fill="url(#logo-grad-about)" />
+      <circle cx="16" cy="16" r="14" stroke="url(#logo-grad)" strokeWidth="2.2" fill="none" opacity="0.35" />
+      <circle cx="16" cy="16" r="9" stroke="url(#logo-grad)" strokeWidth="2.2" fill="none" opacity="0.6" />
+      <circle cx="16" cy="16" r="4" fill="url(#logo-grad)" />
     </svg>
   );
 }
 
-// Hardcoded example based on the founder's actual notebook entry
-const EXAMPLE = {
-  topic: "Expectation is the root cause of suffering",
-  depthLabel: 'Probing',
-  summary: "You challenged the premise by identifying expectation's functional roles, then closed too neatly with an undefined ideal.",
-  wentDeep: [
-    { quote: "Underlying assumptions behind this", tag: "Source attribution" },
-    { quote: "Expectation keeps things mutual, fair but also transactional", tag: "First-principles reasoning" },
-    { quote: "Would you still be hurt if they did more than what you expected?", tag: "Real diagnostic question" },
-  ],
-  stayedShallow: [
-    {
-      pattern: 'Unexamined premise',
-      targetPhrase: "they don't hold true in unconditional love",
-      challenge: "What is 'unconditional love' to you, concretely? Have you experienced it without ANY expectation, not even of presence or care?",
-    },
-  ],
-  biases: [
-    {
-      name: 'closure bias',
-      evidence: "Expectations are conditional, they don't hold true in unconditional love",
-    },
-  ],
-  nextMoves: [
-    { prompt: "Unconditional love is expectation that has been hidden from view", framing: "Test whether your tidy resolution holds up." },
-    { prompt: "Expectations from myself drive most of my hard work", framing: "Examine the positive case you started but did not develop." },
-  ],
-};
+function CollapsibleSection({ kind, count, expanded, onToggle, children }) {
+  const s = sectionStyles[kind];
+  const Icon = s.icon;
+  return (
+    <section style={{ marginBottom: '32px' }}>
+      <button
+        onClick={onToggle}
+        style={{
+          display: 'inline-flex', alignItems: 'center', gap: '10px',
+          background: 'white', border: `1.5px solid ${s.bg}`,
+          borderRadius: '999px', padding: '6px 14px 6px 8px',
+          boxShadow: '0 1px 2px rgba(15, 23, 42, 0.04)',
+          cursor: 'pointer', fontFamily: 'inherit',
+          transition: 'all 0.15s',
+          marginBottom: expanded ? '20px' : '0',
+        }}
+        className="collapsible-trigger"
+      >
+        <div style={{
+          width: '24px', height: '24px', borderRadius: '50%', background: s.bg,
+          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <Icon size={13} color={s.color} strokeWidth={2.5} />
+        </div>
+        <span style={{ fontSize: '13px', fontWeight: 600, color: s.color }}>
+          {s.label}
+        </span>
+        <span style={{
+          fontSize: '11px', fontWeight: 600, color: s.color, opacity: 0.7,
+          background: s.bg, padding: '2px 7px', borderRadius: '999px',
+        }}>
+          {count}
+        </span>
+        {expanded
+          ? <ChevronUp size={14} color={s.color} strokeWidth={2.5} />
+          : <ChevronDown size={14} color={s.color} strokeWidth={2.5} />
+        }
+      </button>
+      {expanded && <div className="fade-in">{children}</div>}
+    </section>
+  );
+}
 
-const depthColors = {
-  Surface: { color: '#E11D48', bg: '#FFE4E6' },
-  Probing: { color: '#D97706', bg: '#FEF3C7' },
-  'Going deeper': { color: '#059669', bg: '#D1FAE5' },
-};
+function BiasChip({ bias }) {
+  const [expanded, setExpanded] = useState(false);
+  return (
+    <span style={{ display: 'inline-block', marginBottom: '10px', marginRight: '8px', verticalAlign: 'top' }}>
+      <button onClick={() => setExpanded(!expanded)} style={{
+        background: expanded ? '#F59E0B' : '#FEF3C7',
+        color: expanded ? '#FFFFFF' : '#92400E',
+        border: 'none', borderRadius: '999px',
+        padding: '8px 14px', fontSize: '13px', fontWeight: 600,
+        cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px',
+        transition: 'all 0.15s', fontFamily: 'inherit', minHeight: '36px',
+      }}>
+        {bias.name}
+        {expanded ? <Minus size={12} strokeWidth={2.5} /> : <Plus size={12} strokeWidth={2.5} />}
+      </button>
+      {expanded && (
+        <div className="fade-in bias-expanded" style={{
+          marginTop: '12px', padding: '16px 18px', background: '#FFFBEB',
+          borderRadius: '14px', border: '1px solid #FEF3C7', maxWidth: '480px',
+        }}>
+          <div style={{ fontSize: '12px', color: '#A16207', fontStyle: 'italic', marginBottom: '10px', lineHeight: 1.5 }}>
+            "{bias.evidence}"
+          </div>
+          <div style={{ fontSize: '14px', color: '#451A03', lineHeight: 1.55, marginBottom: '12px' }}>
+            {bias.why}
+          </div>
+          <div style={{ fontSize: '14px', color: '#92400E', lineHeight: 1.5, fontWeight: 600 }}>
+            → {bias.interrogation}
+          </div>
+        </div>
+      )}
+    </span>
+  );
+}
 
-export default function AboutPage() {
-  const depth = depthColors[EXAMPLE.depthLabel];
+function StructurePicker({ onSelect, onClose, currentStructureIndex }) {
+  return (
+    <div className="fade-in" style={{
+      background: 'white', border: '1.5px solid #C7D2FE', borderRadius: '16px',
+      padding: '16px', marginTop: '10px', marginBottom: '14px',
+      boxShadow: '0 4px 14px rgba(99, 102, 241, 0.15)',
+    }}>
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        marginBottom: '12px',
+      }}>
+        <div style={{ fontSize: '13px', fontWeight: 600, color: '#1E1B4B' }}>
+          Pick a thinking structure
+        </div>
+        <button onClick={onClose} style={{
+          background: 'transparent', border: 'none', cursor: 'pointer',
+          padding: '8px', display: 'flex', alignItems: 'center', color: '#94A3B8',
+          minHeight: '32px', minWidth: '32px',
+        }}>
+          <X size={16} strokeWidth={2.5} />
+        </button>
+      </div>
+      <div style={{ display: 'grid', gap: '8px' }}>
+        {STRUCTURES.map((s, i) => (
+          <button
+            key={i}
+            onClick={() => onSelect(i)}
+            className="structure-option"
+            style={{
+              background: i === currentStructureIndex ? '#EEF2FF' : 'transparent',
+              border: '1px solid ' + (i === currentStructureIndex ? '#C7D2FE' : '#E2E8F0'),
+            }}
+          >
+            <div style={{ flex: 1, textAlign: 'left' }}>
+              <div style={{ fontSize: '14px', fontWeight: 600, color: '#0F172A', marginBottom: '2px' }}>
+                {s.name}
+              </div>
+              <div style={{ fontSize: '12px', color: '#64748B' }}>
+                {s.blurb}
+              </div>
+            </div>
+            <ArrowRight size={14} color="#6366F1" strokeWidth={2.5} />
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Collapsible "what you wrote" reference panel at the top of diagnosis
+function EntryReference({ topic, text }) {
+  const [expanded, setExpanded] = useState(false);
+  const preview = text.length > 100 ? text.substring(0, 100).trim() + '...' : text;
+  return (
+    <div style={{ marginBottom: '24px' }}>
+      <button onClick={() => setExpanded(!expanded)} className="entry-toggle">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, minWidth: 0 }}>
+          <FileText size={14} color="#64748B" strokeWidth={2.5} style={{ flexShrink: 0 }} />
+          <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
+            <div style={{
+              fontSize: '12px', fontWeight: 600, color: '#94A3B8',
+              marginBottom: '2px',
+            }}>
+              What you wrote
+            </div>
+            <div style={{
+              fontSize: '13px', color: '#475569',
+              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+            }}>
+              {topic ? `${topic} — ` : ''}{!expanded && preview}
+            </div>
+          </div>
+        </div>
+        {expanded
+          ? <ChevronUp size={16} color="#64748B" strokeWidth={2.5} style={{ flexShrink: 0 }} />
+          : <ChevronDown size={16} color="#64748B" strokeWidth={2.5} style={{ flexShrink: 0 }} />
+        }
+      </button>
+      {expanded && (
+        <div className="fade-in" style={{
+          background: '#F8FAFC', borderRadius: '14px', padding: '20px 22px',
+          marginTop: '8px', border: '1px solid #E2E8F0',
+        }}>
+          {topic && (
+            <div style={{
+              fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em',
+              textTransform: 'uppercase', color: '#94A3B8', marginBottom: '6px',
+            }}>
+              Topic
+            </div>
+          )}
+          {topic && (
+            <div style={{
+              fontSize: '15px', fontWeight: 600, color: '#0F172A', marginBottom: '16px',
+            }}>
+              {topic}
+            </div>
+          )}
+          <div style={{
+            fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em',
+            textTransform: 'uppercase', color: '#94A3B8', marginBottom: '6px',
+          }}>
+            Your thinking
+          </div>
+          <div style={{
+            fontSize: '14px', color: '#334155', lineHeight: 1.6,
+            whiteSpace: 'pre-wrap',
+          }}>
+            {text}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function Page() {
+  const [prompt, setPrompt] = useState('');
+  const [text, setText] = useState('');
+  const [result, setResult] = useState(null);
+  const [submittedEntry, setSubmittedEntry] = useState(null); // snapshot of what was sent
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [visitorId, setVisitorId] = useState(null);
+  const [showPicker, setShowPicker] = useState(false);
+  const [currentStructure, setCurrentStructure] = useState(null);
+  const [deepExpanded, setDeepExpanded] = useState(false);
+  const [shallowExpanded, setShallowExpanded] = useState(true);
+  const [biasesExpanded, setBiasesExpanded] = useState(false);
+  const resultRef = useRef(null);
+  const textareaRef = useRef(null);
+  const topicRef = useRef(null);
+
+  useEffect(() => { setVisitorId(getVisitorId()); }, []);
+
+  useEffect(() => {
+    if (currentStructure !== null && !textMatchesStructure(text, currentStructure)) {
+      setCurrentStructure(null);
+    }
+  }, [text, currentStructure]);
+
+  useEffect(() => {
+    if (result && resultRef.current) {
+      setTimeout(() => resultRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+    }
+    if (result) {
+      const hasDeep = result.wentDeep?.length > 0;
+      const hasShallow = result.stayedShallow?.length > 0;
+      if (hasShallow) {
+        setShallowExpanded(true);
+        setDeepExpanded(false);
+      } else if (hasDeep) {
+        setDeepExpanded(true);
+        setShallowExpanded(false);
+      }
+      setBiasesExpanded(false);
+    }
+  }, [result]);
+
+  const wordCount = text.trim().split(/\s+/).filter(Boolean).length;
+  const hasContent = text.trim().length > 0 || prompt.trim().length > 0;
+
+  const analyze = async () => {
+    if (!text.trim()) return;
+    setLoading(true); setError(null); setResult(null);
+    setSubmittedEntry({ topic: prompt, text: text });
+    try {
+      const response = await fetch('/api/push', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt, text, visitorId }),
+      });
+      const data = await response.json();
+      if (!response.ok) setError(data.error || 'Something went wrong.');
+      else setResult(data);
+    } catch (e) { console.error(e); setError('Network error. Try again.'); }
+    setLoading(false);
+  };
+
+  const applyStructure = (index) => {
+    const meaningfulContent = text.trim().length > 20;
+    if (meaningfulContent && !window.confirm('This will replace what you\'ve written. Continue?')) {
+      setShowPicker(false);
+      return;
+    }
+    setText(STRUCTURES[index].template);
+    setCurrentStructure(index);
+    setShowPicker(false);
+    setTimeout(() => {
+      if (textareaRef.current) {
+        textareaRef.current.focus();
+        const pos = STRUCTURES[index].template.indexOf('\n\n') + 2;
+        textareaRef.current.setSelectionRange(pos, pos);
+      }
+    }, 50);
+  };
+
+  const cycleStructure = () => {
+    const next = currentStructure === null ? 0 : (currentStructure + 1) % STRUCTURES.length;
+    applyStructure(next);
+  };
+
+  const clearAll = () => {
+    const meaningfulContent = text.trim().length > 20 || prompt.trim().length > 5;
+    if (meaningfulContent && !window.confirm('Clear everything you\'ve written?')) return;
+    setText('');
+    setPrompt('');
+    setCurrentStructure(null);
+    setResult(null);
+    setSubmittedEntry(null);
+    setError(null);
+    setTimeout(() => {
+      if (topicRef.current) topicRef.current.focus();
+    }, 50);
+  };
+
+  const startWithPrompt = (newPrompt) => {
+    setPrompt(newPrompt);
+    setText('');
+    setResult(null);
+    setSubmittedEntry(null);
+    setCurrentStructure(null);
+    setTimeout(() => {
+      if (topicRef.current) topicRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      if (textareaRef.current) textareaRef.current.focus();
+    }, 200);
+  };
+
+  const depth = result ? depthStyles[result.depthLabel] : null;
 
   return (
     <div>
-      <header style={{
+      <header className="page-header" style={{
         padding: '24px 32px',
         display: 'flex',
         alignItems: 'center',
@@ -70,7 +445,7 @@ export default function AboutPage() {
         maxWidth: '1200px',
         margin: '0 auto',
       }}>
-        <a href="/" style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <PushLogo size={28} />
           <span style={{
             fontSize: '26px', fontWeight: 800,
@@ -78,406 +453,298 @@ export default function AboutPage() {
             WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
             letterSpacing: '-0.02em',
           }}>Push</span>
-        </a>
-        <a href="/" style={{
+        </div>
+        <a href="/about" style={{
           fontSize: '14px',
           fontWeight: 600,
           color: '#64748B',
           textDecoration: 'none',
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '6px',
         }} className="nav-link">
-          <ArrowLeft size={15} strokeWidth={2.5} />
-          Back to thinking
+          About
         </a>
       </header>
 
-      <div className="about-wrap" style={{ padding: '24px 32px 96px', maxWidth: '760px', margin: '0 auto' }}>
-        <h1 style={{
-          fontSize: 'clamp(32px, 4.5vw, 48px)',
-          fontWeight: 800,
-          lineHeight: 1.1,
-          letterSpacing: '-0.025em',
-          color: '#0F172A',
-          margin: '32px 0 32px',
+      <div className="page-wrap" style={{ padding: '24px 32px 48px', maxWidth: '1200px', margin: '0 auto' }}>
+        <div className="hero-card" style={{
+          background: 'linear-gradient(180deg, #EFF0FA 0%, #E5E7F9 100%)',
+          borderRadius: '32px',
+          padding: 'clamp(40px, 6vw, 64px) clamp(32px, 5vw, 56px)',
         }}>
-          Why Push exists
-        </h1>
-
-        <div style={{ fontSize: '17px', lineHeight: 1.65, color: '#334155' }}>
-          <p style={{ marginBottom: '20px' }}>
-            Writing used to be how you figured out what you actually thought. Not publishing — just putting an idea into sentences forced you to see where it fell apart. You noticed the belief you had picked up from someone else. You caught yourself repeating something you had heard rather than something you had worked out. That friction was useful.
-          </p>
-
-          <p style={{ marginBottom: '20px' }}>
-            Then we got very good at removing it. Autocomplete finishes your sentence. Paraphrase tools clean your argument. "Improve this writing" smooths it over before you have to sit with the rough version. I started using these tools and noticed something: I was getting <strong style={{ color: '#0F172A' }}>faster and shallower at the same time</strong>.
-          </p>
-
-          <p style={{ marginBottom: '32px' }}>
-            Push is a <strong style={{ color: '#0F172A' }}>contrarian bet</strong>. Same technology, opposite job. Instead of finishing your thinking, it questions it. Instead of smoothing over the rough parts, it points at them.
-          </p>
-
-          <div className="pull-quote" style={{
-            background: 'linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%)',
-            borderLeft: '4px solid #6366F1',
-            borderRadius: '16px',
-            padding: '24px 28px',
-            marginBottom: '56px',
-          }}>
-            <p style={{
-              fontSize: '18px',
-              fontWeight: 600,
-              color: '#1E1B4B',
-              margin: 0,
-              lineHeight: 1.45,
-            }}>
-              If you find yourself sounding more like everyone else lately, that's the symptom Push is built for.
-            </p>
-          </div>
-
-          {/* === STORYTELLING SECTION === */}
-          <h2 style={{
-            fontSize: '26px',
-            fontWeight: 700,
+          <h1 className="hero-headline" style={{
+            fontSize: 'clamp(36px, 5.5vw, 56px)',
+            fontWeight: 800,
+            lineHeight: 1.05,
+            letterSpacing: '-0.03em',
             color: '#0F172A',
-            margin: '0 0 12px',
-            letterSpacing: '-0.015em',
+            margin: '0 0 20px',
+            maxWidth: '820px',
           }}>
-            Here's what it looked like for me
-          </h2>
+            AI that{' '}
+            <span style={{
+              background: 'linear-gradient(135deg, #4F46E5, #7C3AED)',
+              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+            }}>interrupts</span>
+            {' '}your thinking. On purpose.
+          </h1>
 
-          <p style={{ marginBottom: '32px', color: '#475569' }}>
-            One morning I sat with a sentence I'd been carrying for years without questioning. <em>Expectation is the root cause of suffering.</em> Where did I get this? Did I actually believe it? I opened a notebook.
-          </p>
-
-          {/* Notebook images */}
-          <div className="notebook-grid" style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: '12px',
-            marginBottom: '20px',
-          }}>
-            <img
-              src="/notebook-page-1.jpg"
-              alt="Handwritten journal page exploring 'Expectation is the root cause of suffering'. Lists of underlying assumptions and blind spots."
-              style={{
-                width: '100%',
-                height: 'auto',
-                borderRadius: '14px',
-                border: '1px solid #E2E8F0',
-                boxShadow: '0 4px 14px rgba(15, 23, 42, 0.06)',
-                display: 'block',
-              }}
-            />
-            <img
-              src="/notebook-page-2.jpg"
-              alt="Second handwritten page continuing the thinking. What expectations make us feel, and when they break down."
-              style={{
-                width: '100%',
-                height: 'auto',
-                borderRadius: '14px',
-                border: '1px solid #E2E8F0',
-                boxShadow: '0 4px 14px rgba(15, 23, 42, 0.06)',
-                display: 'block',
-              }}
-            />
-          </div>
-
-          <p style={{
-            fontSize: '14px',
-            color: '#94A3B8',
-            fontStyle: 'italic',
-            marginBottom: '40px',
-            textAlign: 'center',
-          }}>
-            Twenty minutes later, I had two pages of half-formed thoughts. Some real, some borrowed. I couldn't tell which were which.
-          </p>
-
-          {/* Transition: typed it in */}
-          <div style={{
-            background: '#F8FAFC',
-            borderRadius: '16px',
-            padding: '20px 24px',
-            marginBottom: '24px',
-            border: '1px solid #E2E8F0',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '14px',
-          }} className="typed-it-box">
-            <div style={{
-              width: '40px', height: '40px', borderRadius: '10px',
-              background: 'linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              flexShrink: 0,
-            }}>
-              <Keyboard size={18} color="#4F46E5" strokeWidth={2.5} />
-            </div>
-            <div style={{ fontSize: '14px', color: '#475569', lineHeight: 1.55 }}>
-              <strong style={{ color: '#0F172A' }}>Then I typed it into Push.</strong> No photo upload yet. Re-typing is part of the practice. You decide what's worth keeping.
-            </div>
-          </div>
-
-          <p style={{ marginBottom: '24px', color: '#475569' }}>
-            Here's what Push said back:
-          </p>
-
-          {/* === RENDERED PUSH ANALYSIS CARD === */}
-          <div style={{
-            background: 'white',
-            borderRadius: '24px',
-            padding: 'clamp(24px, 3vw, 36px)',
-            boxShadow: '0 4px 24px rgba(15, 23, 42, 0.04)',
-            border: '1px solid #E2E8F0',
-            marginBottom: '40px',
-          }} className="example-card">
-            {/* Topic header */}
-            <div style={{
-              fontSize: '11px', fontWeight: 700, letterSpacing: '0.1em',
-              textTransform: 'uppercase', color: '#94A3B8', marginBottom: '6px',
-            }}>
-              Topic
-            </div>
-            <div style={{
-              fontSize: '15px', color: '#475569', marginBottom: '24px',
-              fontWeight: 500,
-            }}>
-              {EXAMPLE.topic}
-            </div>
-
-            {/* Depth pill */}
-            <div style={{
-              display: 'inline-flex', alignItems: 'center', gap: '8px',
-              background: depth.bg, color: depth.color,
-              padding: '6px 14px', borderRadius: '999px',
-              fontSize: '13px', fontWeight: 600,
-              marginBottom: '16px',
-            }}>
-              <Sparkles size={13} strokeWidth={2.5} />
-              {EXAMPLE.depthLabel}
-            </div>
-
-            {/* Summary */}
-            <p style={{
-              fontSize: '20px', lineHeight: 1.35,
-              color: '#0F172A', margin: '0 0 32px',
-              fontWeight: 600, letterSpacing: '-0.015em',
-            }} className="example-summary">
-              {EXAMPLE.summary}
-            </p>
-
-            {/* Where you went deeper */}
-            <section style={{ marginBottom: '28px' }}>
-              <div style={{
-                display: 'inline-flex', alignItems: 'center', gap: '8px',
-                background: 'white', border: '1.5px solid #D1FAE5',
-                borderRadius: '999px', padding: '6px 14px 6px 8px',
-                marginBottom: '14px',
-              }}>
-                <div style={{
-                  width: '24px', height: '24px', borderRadius: '50%', background: '#D1FAE5',
-                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                }}>
-                  <CheckCircle2 size={13} color="#059669" strokeWidth={2.5} />
-                </div>
-                <span style={{ fontSize: '13px', fontWeight: 600, color: '#059669' }}>
-                  Where you went deeper
-                </span>
-                <span style={{
-                  fontSize: '11px', fontWeight: 600, color: '#059669', opacity: 0.7,
-                  background: '#D1FAE5', padding: '2px 7px', borderRadius: '999px',
-                }}>
-                  {EXAMPLE.wentDeep.length}
-                </span>
-              </div>
-              <div style={{ display: 'grid', gap: '10px' }}>
-                {EXAMPLE.wentDeep.map((d, i) => (
-                  <div key={i} style={{
-                    background: '#F0FDF4', borderRadius: '14px',
-                    padding: '12px 16px', borderLeft: '3px solid #10B981',
-                    display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap',
-                  }}>
-                    <div style={{
-                      fontSize: '11px', fontWeight: 700, color: '#059669',
-                      background: '#D1FAE5', padding: '4px 10px', borderRadius: '999px',
-                      flexShrink: 0,
-                    }}>
-                      {d.tag}
-                    </div>
-                    <div style={{ fontSize: '13px', color: '#064E3B', fontStyle: 'italic', lineHeight: 1.5, flex: 1, minWidth: '180px' }}>
-                      "{d.quote}"
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            {/* Where you stayed on the surface */}
-            <section style={{ marginBottom: '28px' }}>
-              <div style={{
-                display: 'inline-flex', alignItems: 'center', gap: '8px',
-                background: 'white', border: '1.5px solid #FFE4E6',
-                borderRadius: '999px', padding: '6px 14px 6px 8px',
-                marginBottom: '14px',
-              }}>
-                <div style={{
-                  width: '24px', height: '24px', borderRadius: '50%', background: '#FFE4E6',
-                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                }}>
-                  <Telescope size={13} color="#E11D48" strokeWidth={2.5} />
-                </div>
-                <span style={{ fontSize: '13px', fontWeight: 600, color: '#E11D48' }}>
-                  Where you stayed on the surface
-                </span>
-                <span style={{
-                  fontSize: '11px', fontWeight: 600, color: '#E11D48', opacity: 0.7,
-                  background: '#FFE4E6', padding: '2px 7px', borderRadius: '999px',
-                }}>
-                  {EXAMPLE.stayedShallow.length}
-                </span>
-              </div>
-              <div style={{ display: 'grid', gap: '14px' }}>
-                {EXAMPLE.stayedShallow.map((c, i) => (
-                  <div key={i} style={{
-                    background: '#FFF1F2', borderRadius: '16px',
-                    padding: '18px 22px',
-                    borderLeft: '4px solid #475569',
-                  }}>
-                    <div style={{
-                      display: 'inline-block', fontSize: '10px', fontWeight: 700,
-                      letterSpacing: '0.1em', textTransform: 'uppercase',
-                      color: '#475569', marginBottom: '10px',
-                    }}>
-                      {c.pattern}
-                    </div>
-                    <div style={{ fontSize: '13px', color: '#9F1239', fontStyle: 'italic', marginBottom: '10px', lineHeight: 1.5 }}>
-                      "{c.targetPhrase}"
-                    </div>
-                    <div style={{ fontSize: '15px', color: '#4C0519', lineHeight: 1.55 }}>
-                      {c.challenge}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            {/* Biases */}
-            <section style={{ marginBottom: '28px' }}>
-              <div style={{
-                display: 'inline-flex', alignItems: 'center', gap: '8px',
-                background: 'white', border: '1.5px solid #FEF3C7',
-                borderRadius: '999px', padding: '6px 14px 6px 8px',
-                marginBottom: '14px',
-              }}>
-                <div style={{
-                  width: '24px', height: '24px', borderRadius: '50%', background: '#FEF3C7',
-                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                }}>
-                  <Brain size={13} color="#D97706" strokeWidth={2.5} />
-                </div>
-                <span style={{ fontSize: '13px', fontWeight: 600, color: '#D97706' }}>
-                  Biases showing up
-                </span>
-                <span style={{
-                  fontSize: '11px', fontWeight: 600, color: '#D97706', opacity: 0.7,
-                  background: '#FEF3C7', padding: '2px 7px', borderRadius: '999px',
-                }}>
-                  {EXAMPLE.biases.length}
-                </span>
-              </div>
-              <span style={{
-                display: 'inline-flex', alignItems: 'center', gap: '6px',
-                background: '#FEF3C7', color: '#92400E',
-                borderRadius: '999px', padding: '8px 14px',
-                fontSize: '13px', fontWeight: 600,
-              }}>
-                {EXAMPLE.biases[0].name}
-              </span>
-            </section>
-
-            {/* Continue thinking */}
-            <section>
-              <div style={{
-                display: 'inline-flex', alignItems: 'center', gap: '8px',
-                background: 'white', border: '1.5px solid #E0E7FF',
-                borderRadius: '999px', padding: '6px 14px 6px 8px',
-                marginBottom: '14px',
-              }}>
-                <div style={{
-                  width: '24px', height: '24px', borderRadius: '50%', background: '#E0E7FF',
-                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                }}>
-                  <MoveRight size={13} color="#4F46E5" strokeWidth={2.5} />
-                </div>
-                <span style={{ fontSize: '13px', fontWeight: 600, color: '#4F46E5' }}>
-                  Continue thinking
-                </span>
-              </div>
-              <div style={{ display: 'grid', gap: '10px' }}>
-                {EXAMPLE.nextMoves.map((m, i) => (
-                  <div key={i} style={{
-                    display: 'flex', alignItems: 'center', gap: '14px',
-                    background: 'linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%)',
-                    border: '1.5px solid #C7D2FE',
-                    borderLeft: '4px solid #6366F1',
-                    borderRadius: '14px',
-                    padding: '16px 20px',
-                  }}>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: '15px', color: '#1E1B4B', lineHeight: 1.4, fontWeight: 600, marginBottom: '3px' }}>
-                        {m.prompt}
-                      </div>
-                      <div style={{ fontSize: '12px', color: '#6366F1', lineHeight: 1.4, fontWeight: 500 }}>
-                        {m.framing}
-                      </div>
-                    </div>
-                    <div style={{
-                      display: 'inline-flex', alignItems: 'center', gap: '4px',
-                      fontSize: '12px', fontWeight: 600, color: '#4F46E5',
-                      flexShrink: 0,
-                    }}>
-                      Start
-                      <ArrowUpRight size={12} strokeWidth={2.5} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
-          </div>
-
-          <p style={{
-            fontSize: '15px',
-            color: '#334155',
+          <p className="hero-subhead" style={{
+            fontSize: 'clamp(17px, 1.7vw, 19px)',
+            lineHeight: 1.5,
+            color: '#475569',
+            margin: '0 0 44px',
+            maxWidth: '640px',
             fontWeight: 500,
-            marginBottom: '56px',
-            textAlign: 'center',
           }}>
-            That gap between what I thought I was saying and what Push showed me I'd written. That's the product.
+            Stop sounding like everyone else. Start sounding like you.
           </p>
 
-          <h2 style={{
-            fontSize: '24px',
-            fontWeight: 700,
-            color: '#0F172A',
-            margin: '40px 0 16px',
-            letterSpacing: '-0.015em',
+          <label htmlFor="topic" className="push-label">The topic or belief you want to examine</label>
+          <input
+            id="topic" ref={topicRef} type="text" value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            placeholder="e.g. expectation is the root cause of suffering"
+            className="push-input"
+          />
+
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            marginTop: '28px', marginBottom: '10px', flexWrap: 'wrap', gap: '12px',
           }}>
-            What Push isn't
-          </h2>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+              <label htmlFor="thinking" className="push-label" style={{ margin: 0 }}>Your thinking</label>
+              <button
+                onClick={() => setShowPicker(!showPicker)}
+                className="structure-trigger"
+              >
+                <Layers size={13} strokeWidth={2.5} />
+                {currentStructure !== null ? `Using: ${STRUCTURES[currentStructure].name}` : 'Need a structure?'}
+              </button>
+              {hasContent && (
+                <button onClick={clearAll} className="clear-trigger">
+                  <Trash2 size={13} strokeWidth={2.5} />
+                  Clear
+                </button>
+              )}
+            </div>
+            {wordCount > 0 && (
+              <span style={{ fontSize: '12px', color: '#64748B', fontWeight: 500 }}>
+                {wordCount} word{wordCount === 1 ? '' : 's'}
+              </span>
+            )}
+          </div>
 
-          <p style={{ marginBottom: '20px' }}>
-            It's not a journaling app. It's not therapy. It's not a productivity tool. It's a practice. The people who keep coming back are practicing finding their own voice, one entry at a time.
-          </p>
+          {showPicker && (
+            <StructurePicker
+              onSelect={applyStructure}
+              onClose={() => setShowPicker(false)}
+              currentStructureIndex={currentStructure}
+            />
+          )}
 
-          <p style={{ marginBottom: '40px' }}>
-            If that's the kind of practice you're looking for, you're in the right place.
-          </p>
+          <textarea
+            id="thinking" ref={textareaRef} value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder="Where did this thought come from? What's the strongest case against it? Where does your own life confirm or contradict it? Don't fill the page, interrogate yourself."
+            rows={12}
+            className="push-textarea"
+          />
 
-          <a href="/" className="push-cta" style={{ textDecoration: 'none' }}>
-            Start thinking →
-          </a>
+          {currentStructure !== null && (
+            <div style={{ marginTop: '10px' }}>
+              <button onClick={cycleStructure} className="cycle-link">
+                Try another structure →
+              </button>
+            </div>
+          )}
+
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: '16px', marginTop: '24px',
+            flexWrap: 'wrap',
+          }}>
+            <button onClick={analyze} disabled={loading || !text.trim()} className="push-cta">
+              {loading ? (
+                <><Loader2 size={16} className="spin" strokeWidth={2.5} /> thinking…</>
+              ) : (
+                <><Sparkles size={16} strokeWidth={2.5} /> help me think better <ArrowRight size={16} strokeWidth={2.5} /></>
+              )}
+            </button>
+          </div>
+
+          {error && (
+            <div style={{
+              marginTop: '20px', padding: '14px 18px', background: '#FFE4E6',
+              borderRadius: '12px', color: '#BE123C', fontSize: '14px', fontWeight: 500,
+              display: 'inline-block',
+            }}>
+              {error}
+            </div>
+          )}
         </div>
       </div>
+
+      {loading && !result && (
+        <div style={{
+          padding: '8px 32px 48px', maxWidth: '1200px', margin: '0 auto',
+          textAlign: 'center',
+        }}>
+          <div className="fade-in" style={{
+            display: 'inline-flex', alignItems: 'center', gap: '12px',
+            color: '#6366F1', fontSize: '15px', fontWeight: 500,
+            background: 'white', padding: '14px 22px', borderRadius: '999px',
+            boxShadow: '0 1px 3px rgba(15, 23, 42, 0.04)',
+          }}>
+            <Loader2 size={18} className="spin" strokeWidth={2.5} />
+            Reading what you wrote…
+          </div>
+        </div>
+      )}
+
+      {result && (
+        <div ref={resultRef} className="page-wrap" style={{ padding: '8px 32px 96px', maxWidth: '1200px', margin: '0 auto' }}>
+          <div className="fade-in result-card" style={{
+            background: 'white', borderRadius: '32px',
+            padding: 'clamp(32px, 5vw, 56px)',
+            boxShadow: '0 4px 24px rgba(15, 23, 42, 0.04)',
+          }}>
+            {/* Reference panel at top */}
+            {submittedEntry && (
+              <EntryReference topic={submittedEntry.topic} text={submittedEntry.text} />
+            )}
+
+            {depth && (
+              <div style={{
+                display: 'inline-flex', alignItems: 'center', gap: '8px',
+                background: depth.bg, color: depth.color,
+                padding: '6px 14px', borderRadius: '999px',
+                fontSize: '13px', fontWeight: 600,
+                marginBottom: '32px',
+              }}>
+                <Sparkles size={13} strokeWidth={2.5} />
+                {result.depthLabel}
+              </div>
+            )}
+
+            {result.wentDeep?.length > 0 && (
+              <CollapsibleSection
+                kind="deep"
+                count={result.wentDeep.length}
+                expanded={deepExpanded}
+                onToggle={() => setDeepExpanded(!deepExpanded)}
+              >
+                <div style={{ display: 'grid', gap: '10px' }}>
+                  {result.wentDeep.map((d, i) => (
+                    <div key={i} style={{
+                      background: sectionStyles.deep.cardBg, borderRadius: '14px',
+                      padding: '16px 20px', borderLeft: `3px solid ${sectionStyles.deep.border}`,
+                    }}>
+                      <div style={{ fontSize: '13px', color: '#064E3B', fontStyle: 'italic', lineHeight: 1.5, marginBottom: '8px' }}>
+                        "{d.quote}"
+                      </div>
+                      <div style={{ fontSize: '14px', color: '#059669', lineHeight: 1.5, fontWeight: 500 }}>
+                        {d.note}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CollapsibleSection>
+            )}
+
+            {result.stayedShallow?.length > 0 && (
+              <CollapsibleSection
+                kind="shallow"
+                count={result.stayedShallow.length}
+                expanded={shallowExpanded}
+                onToggle={() => setShallowExpanded(!shallowExpanded)}
+              >
+                <div style={{ display: 'grid', gap: '14px' }}>
+                  {result.stayedShallow.map((c, i) => (
+                    <div key={i} style={{
+                      background: sectionStyles.shallow.cardBg, borderRadius: '16px',
+                      padding: '20px 24px',
+                      borderLeft: `4px solid ${sectionStyles.shallow.border}`,
+                    }}>
+                      {c.targetPhrase && c.targetPhrase.length < 80 && (
+                        <div style={{ fontSize: '13px', color: '#9F1239', fontStyle: 'italic', marginBottom: '10px', lineHeight: 1.5 }}>
+                          "{c.targetPhrase}"
+                        </div>
+                      )}
+                      <div style={{ fontSize: '15px', color: '#4C0519', lineHeight: 1.6 }}>
+                        {c.challenge}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CollapsibleSection>
+            )}
+
+            {result.biases?.length > 0 && (
+              <CollapsibleSection
+                kind="biases"
+                count={result.biases.length}
+                expanded={biasesExpanded}
+                onToggle={() => setBiasesExpanded(!biasesExpanded)}
+              >
+                <div>
+                  {result.biases.map((b, i) => <BiasChip key={i} bias={b} />)}
+                </div>
+              </CollapsibleSection>
+            )}
+
+            {result.nextMoves?.length > 0 && (
+              <section>
+                <div style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '8px',
+                  background: 'white', border: `1.5px solid ${sectionStyles.next.bg}`,
+                  borderRadius: '999px', padding: '6px 14px 6px 8px',
+                  boxShadow: '0 1px 2px rgba(15, 23, 42, 0.04)', marginBottom: '20px',
+                }}>
+                  <div style={{
+                    width: '24px', height: '24px', borderRadius: '50%', background: sectionStyles.next.bg,
+                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                  }}>
+                    <MoveRight size={13} color={sectionStyles.next.color} strokeWidth={2.5} />
+                  </div>
+                  <span style={{ fontSize: '13px', fontWeight: 600, color: sectionStyles.next.color }}>
+                    Keep digging
+                  </span>
+                </div>
+                <div style={{ display: 'grid', gap: '12px' }}>
+                  {result.nextMoves.map((m, i) => (
+                    <button
+                      key={i}
+                      onClick={() => startWithPrompt(m.prompt)}
+                      className="next-move-btn"
+                    >
+                      <div style={{ flex: 1, textAlign: 'left' }}>
+                        <div style={{
+                          fontSize: '16px', color: '#1E1B4B', lineHeight: 1.45,
+                          fontWeight: 600, marginBottom: '4px',
+                        }}>
+                          {m.prompt}
+                        </div>
+                        <div style={{
+                          fontSize: '13px', color: '#6366F1', lineHeight: 1.4,
+                          fontWeight: 500,
+                        }}>
+                          {m.framing}
+                        </div>
+                      </div>
+                      <div className="start-badge" style={{
+                        display: 'inline-flex', alignItems: 'center', gap: '6px',
+                        fontSize: '13px', fontWeight: 600, color: '#4F46E5',
+                        flexShrink: 0,
+                      }}>
+                        Start
+                        <ArrowUpRight size={14} strokeWidth={2.5} />
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </section>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
