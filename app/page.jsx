@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from 'react';
 import {
   Sparkles, ArrowRight, Loader2, Plus, Minus,
   Telescope, Brain, MoveRight, CheckCircle2, ArrowUpRight,
-  Layers, X,
+  Layers, X, ChevronDown, ChevronUp,
 } from 'lucide-react';
 
 function getVisitorId() {
@@ -82,6 +82,18 @@ The mechanism that actually explains the difference:
   },
 ];
 
+// Check if text still meaningfully contains the structure's headings
+function textMatchesStructure(text, structureIndex) {
+  if (structureIndex === null) return false;
+  const template = STRUCTURES[structureIndex].template;
+  // Extract the heading lines (those that end with ?:)
+  const headings = template.split('\n').filter(line => line.trim().length > 0);
+  if (headings.length === 0) return false;
+  // Consider it "still using" if at least 2/3 of the original headings are present
+  const present = headings.filter(h => text.includes(h.trim())).length;
+  return present >= Math.ceil(headings.length * 0.66);
+}
+
 const sectionStyles = {
   deep:    { color: '#059669', bg: '#D1FAE5', cardBg: '#F0FDF4', border: '#10B981', icon: CheckCircle2, label: 'Where you went deeper' },
   shallow: { color: '#E11D48', bg: '#FFE4E6', cardBg: '#FFF1F2', border: '#F43F5E', icon: Telescope,    label: 'Where you stayed on the surface' },
@@ -126,26 +138,46 @@ function ThoughtBubble() {
   );
 }
 
-function SectionBadge({ kind }) {
+function CollapsibleSection({ kind, count, expanded, onToggle, children }) {
   const s = sectionStyles[kind];
   const Icon = s.icon;
   return (
-    <div style={{
-      display: 'inline-flex', alignItems: 'center', gap: '8px',
-      background: 'white', border: `1.5px solid ${s.bg}`,
-      borderRadius: '999px', padding: '6px 14px 6px 8px', marginBottom: '20px',
-      boxShadow: '0 1px 2px rgba(15, 23, 42, 0.04)',
-    }}>
-      <div style={{
-        width: '24px', height: '24px', borderRadius: '50%', background: s.bg,
-        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-      }}>
-        <Icon size={13} color={s.color} strokeWidth={2.5} />
-      </div>
-      <span style={{
-        fontSize: '13px', fontWeight: 600, color: s.color,
-      }}>{s.label}</span>
-    </div>
+    <section style={{ marginBottom: '32px' }}>
+      <button
+        onClick={onToggle}
+        style={{
+          display: 'inline-flex', alignItems: 'center', gap: '10px',
+          background: 'white', border: `1.5px solid ${s.bg}`,
+          borderRadius: '999px', padding: '6px 14px 6px 8px',
+          boxShadow: '0 1px 2px rgba(15, 23, 42, 0.04)',
+          cursor: 'pointer', fontFamily: 'inherit',
+          transition: 'all 0.15s',
+          marginBottom: expanded ? '20px' : '0',
+        }}
+        className="collapsible-trigger"
+      >
+        <div style={{
+          width: '24px', height: '24px', borderRadius: '50%', background: s.bg,
+          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <Icon size={13} color={s.color} strokeWidth={2.5} />
+        </div>
+        <span style={{ fontSize: '13px', fontWeight: 600, color: s.color }}>
+          {s.label}
+        </span>
+        <span style={{
+          fontSize: '11px', fontWeight: 600, color: s.color, opacity: 0.7,
+          background: s.bg, padding: '2px 7px', borderRadius: '999px',
+        }}>
+          {count}
+        </span>
+        {expanded
+          ? <ChevronUp size={14} color={s.color} strokeWidth={2.5} />
+          : <ChevronDown size={14} color={s.color} strokeWidth={2.5} />
+        }
+      </button>
+      {expanded && <div className="fade-in">{children}</div>}
+    </section>
   );
 }
 
@@ -241,15 +273,40 @@ export default function Page() {
   const [visitorId, setVisitorId] = useState(null);
   const [showPicker, setShowPicker] = useState(false);
   const [currentStructure, setCurrentStructure] = useState(null);
+  const [deepExpanded, setDeepExpanded] = useState(false);
+  const [shallowExpanded, setShallowExpanded] = useState(true);
+  const [biasesExpanded, setBiasesExpanded] = useState(false);
   const resultRef = useRef(null);
   const textareaRef = useRef(null);
   const topicRef = useRef(null);
 
   useEffect(() => { setVisitorId(getVisitorId()); }, []);
 
+  // Auto-clear structure flag when text no longer matches the template
+  useEffect(() => {
+    if (currentStructure !== null && !textMatchesStructure(text, currentStructure)) {
+      setCurrentStructure(null);
+    }
+  }, [text, currentStructure]);
+
   useEffect(() => {
     if (result && resultRef.current) {
       setTimeout(() => resultRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+    }
+    // Set default expanded state based on what's in the result
+    if (result) {
+      const hasDeep = result.wentDeep?.length > 0;
+      const hasShallow = result.stayedShallow?.length > 0;
+      // If both present, shallow expands (it's the action item).
+      // If only deep, deep expands.
+      if (hasShallow) {
+        setShallowExpanded(true);
+        setDeepExpanded(false);
+      } else if (hasDeep) {
+        setDeepExpanded(true);
+        setShallowExpanded(false);
+      }
+      setBiasesExpanded(false);
     }
   }, [result]);
 
@@ -282,7 +339,8 @@ export default function Page() {
     setTimeout(() => {
       if (textareaRef.current) {
         textareaRef.current.focus();
-        textareaRef.current.setSelectionRange(STRUCTURES[index].template.indexOf('\n\n') + 2, STRUCTURES[index].template.indexOf('\n\n') + 2);
+        const pos = STRUCTURES[index].template.indexOf('\n\n') + 2;
+        textareaRef.current.setSelectionRange(pos, pos);
       }
     }, 50);
   };
@@ -497,38 +555,49 @@ export default function Page() {
 
             <p style={{
               fontSize: 'clamp(20px, 2.5vw, 26px)', lineHeight: 1.35,
-              color: '#0F172A', margin: '0 0 48px',
+              color: '#0F172A', margin: '0 0 40px',
               fontWeight: 600, letterSpacing: '-0.015em', maxWidth: '780px',
             }}>
               {result.summary}
             </p>
 
             {result.wentDeep?.length > 0 && (
-              <section style={{ marginBottom: '40px' }}>
-                <SectionBadge kind="deep" />
-                <div style={{ display: 'grid', gap: '14px' }}>
+              <CollapsibleSection
+                kind="deep"
+                count={result.wentDeep.length}
+                expanded={deepExpanded}
+                onToggle={() => setDeepExpanded(!deepExpanded)}
+              >
+                <div style={{ display: 'grid', gap: '10px' }}>
                   {result.wentDeep.map((d, i) => (
                     <div key={i} style={{
-                      background: sectionStyles.deep.cardBg, borderRadius: '16px',
-                      padding: '20px 24px', borderLeft: `4px solid ${sectionStyles.deep.border}`,
+                      background: sectionStyles.deep.cardBg, borderRadius: '14px',
+                      padding: '14px 18px', borderLeft: `3px solid ${sectionStyles.deep.border}`,
+                      display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap',
                     }}>
-                      {d.quote && d.quote.length < 80 && (
-                        <div style={{ fontSize: '13px', color: '#15803D', fontStyle: 'italic', marginBottom: '10px', lineHeight: 1.5 }}>
-                          "{d.quote}"
-                        </div>
-                      )}
-                      <div style={{ fontSize: '15px', color: '#064E3B', lineHeight: 1.55 }}>
-                        {d.why}
+                      <div style={{
+                        fontSize: '11px', fontWeight: 700, color: '#059669',
+                        background: '#D1FAE5', padding: '4px 10px', borderRadius: '999px',
+                        flexShrink: 0, letterSpacing: '0.02em',
+                      }}>
+                        {d.tag}
+                      </div>
+                      <div style={{ fontSize: '14px', color: '#064E3B', fontStyle: 'italic', lineHeight: 1.5, flex: 1, minWidth: '200px' }}>
+                        "{d.quote}"
                       </div>
                     </div>
                   ))}
                 </div>
-              </section>
+              </CollapsibleSection>
             )}
 
             {result.stayedShallow?.length > 0 && (
-              <section style={{ marginBottom: '40px' }}>
-                <SectionBadge kind="shallow" />
+              <CollapsibleSection
+                kind="shallow"
+                count={result.stayedShallow.length}
+                expanded={shallowExpanded}
+                onToggle={() => setShallowExpanded(!shallowExpanded)}
+              >
                 <div style={{ display: 'grid', gap: '14px' }}>
                   {result.stayedShallow.map((c, i) => (
                     <div key={i} style={{
@@ -554,21 +623,40 @@ export default function Page() {
                     </div>
                   ))}
                 </div>
-              </section>
+              </CollapsibleSection>
             )}
 
             {result.biases?.length > 0 && (
-              <section style={{ marginBottom: '40px' }}>
-                <SectionBadge kind="biases" />
+              <CollapsibleSection
+                kind="biases"
+                count={result.biases.length}
+                expanded={biasesExpanded}
+                onToggle={() => setBiasesExpanded(!biasesExpanded)}
+              >
                 <div>
                   {result.biases.map((b, i) => <BiasChip key={i} bias={b} />)}
                 </div>
-              </section>
+              </CollapsibleSection>
             )}
 
             {result.nextMoves?.length > 0 && (
               <section>
-                <SectionBadge kind="next" />
+                <div style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '8px',
+                  background: 'white', border: `1.5px solid ${sectionStyles.next.bg}`,
+                  borderRadius: '999px', padding: '6px 14px 6px 8px',
+                  boxShadow: '0 1px 2px rgba(15, 23, 42, 0.04)', marginBottom: '20px',
+                }}>
+                  <div style={{
+                    width: '24px', height: '24px', borderRadius: '50%', background: sectionStyles.next.bg,
+                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                  }}>
+                    <MoveRight size={13} color={sectionStyles.next.color} strokeWidth={2.5} />
+                  </div>
+                  <span style={{ fontSize: '13px', fontWeight: 600, color: sectionStyles.next.color }}>
+                    Continue thinking
+                  </span>
+                </div>
                 <div style={{ display: 'grid', gap: '12px' }}>
                   {result.nextMoves.map((m, i) => (
                     <button
