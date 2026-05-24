@@ -335,6 +335,8 @@ export default function Page() {
   const [deepExpanded, setDeepExpanded] = useState(false);
   const [shallowExpanded, setShallowExpanded] = useState(true);
   const [biasesExpanded, setBiasesExpanded] = useState(false);
+  const [pushId, setPushId] = useState(null);
+  const [feedback, setFeedback] = useState(null);
   const resultRef = useRef(null);
   const textareaRef = useRef(null);
   const topicRef = useRef(null);
@@ -370,7 +372,7 @@ export default function Page() {
 
   const analyze = async () => {
     if (!text.trim()) return;
-    setLoading(true); setError(null); setResult(null);
+    setLoading(true); setError(null); setResult(null); setFeedback(null); setPushId(null);
     setSubmittedEntry({ topic: prompt, text: text });
     try {
       const response = await fetch('/api/push', {
@@ -379,7 +381,10 @@ export default function Page() {
       });
       const data = await response.json();
       if (!response.ok) setError(data.error || 'Something went wrong.');
-      else setResult(data);
+      else {
+        setResult(data);
+        if (data.pushId) setPushId(data.pushId);
+      }
     } catch (e) { console.error(e); setError('Network error. Try again.'); }
     setLoading(false);
   };
@@ -427,10 +432,26 @@ export default function Page() {
     setResult(null);
     setSubmittedEntry(null);
     setCurrentStructure(null);
+    setFeedback(null);
+    setPushId(null);
     setTimeout(() => {
       if (topicRef.current) topicRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
       if (textareaRef.current) textareaRef.current.focus();
     }, 200);
+  };
+
+  const submitFeedback = async (rating) => {
+    setFeedback(rating);
+    if (!pushId) return;
+    try {
+      await fetch('/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pushId, rating }),
+      });
+    } catch (e) {
+      console.error('Feedback error:', e);
+    }
   };
 
   const depth = result ? depthStyles[result.depthLabel] : null;
@@ -741,6 +762,49 @@ export default function Page() {
                   ))}
                 </div>
               </section>
+            )}
+          </div>
+
+          {/* Feedback */}
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            gap: '12px', flexWrap: 'wrap', padding: '24px 0 24px',
+          }}>
+            {!feedback ? (
+              <>
+                <span style={{ fontSize: '13px', color: '#94A3B8', fontWeight: 500 }}>
+                  Did Push call it right?
+                </span>
+                {[
+                  { label: 'This hit.', value: 'hit', color: '#059669', bg: '#F0FDF4' },
+                  { label: 'Too easy.', value: 'easy', color: '#D97706', bg: '#FFFBEB' },
+                  { label: 'Off target.', value: 'off', color: '#E11D48', bg: '#FFF1F2' },
+                ].map(opt => (
+                  <button
+                    key={opt.value}
+                    onClick={() => submitFeedback(opt.value)}
+                    style={{
+                      background: opt.bg,
+                      border: `1.5px solid ${opt.color}44`,
+                      color: opt.color,
+                      borderRadius: '999px',
+                      padding: '8px 18px',
+                      fontSize: '13px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      fontFamily: 'inherit',
+                      transition: 'all 0.15s',
+                      minHeight: '36px',
+                    }}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </>
+            ) : (
+              <span style={{ fontSize: '13px', color: '#64748B', fontWeight: 500 }}>
+                Got it. Helps Push get better.
+              </span>
             )}
           </div>
         </div>
