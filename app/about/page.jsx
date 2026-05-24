@@ -186,8 +186,8 @@ export default function AboutPage() {
 
           <p style={{
             fontSize: '14px',
-            color: '#94A3B8',
-            fontStyle: 'italic',
+            color: '#475569',
+            fontWeight: 500,
             marginBottom: '40px',
             textAlign: 'center',
           }}>
@@ -214,7 +214,7 @@ export default function AboutPage() {
               <Keyboard size={18} color="#4F46E5" strokeWidth={2.5} />
             </div>
             <div style={{ fontSize: '14px', color: '#475569', lineHeight: 1.55 }}>
-              <strong style={{ color: '#0F172A' }}>Then I typed it into Push.</strong> No photo upload yet. Re-typing is part of the practice. You decide what's worth keeping.
+              <strong style={{ color: '#0F172A' }}>Then I typed it into Push.</strong> No photo upload yet. We will build it soon.
             </div>
           </div>
 
