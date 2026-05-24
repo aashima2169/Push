@@ -643,18 +643,13 @@ export default function Page() {
                   {result.wentDeep.map((d, i) => (
                     <div key={i} style={{
                       background: sectionStyles.deep.cardBg, borderRadius: '14px',
-                      padding: '14px 18px', borderLeft: `3px solid ${sectionStyles.deep.border}`,
-                      display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap',
+                      padding: '16px 20px', borderLeft: `3px solid ${sectionStyles.deep.border}`,
                     }}>
-                      <div style={{
-                        fontSize: '11px', fontWeight: 700, color: '#059669',
-                        background: '#D1FAE5', padding: '4px 10px', borderRadius: '999px',
-                        flexShrink: 0, letterSpacing: '0.02em',
-                      }}>
-                        {d.tag}
-                      </div>
-                      <div style={{ fontSize: '14px', color: '#064E3B', fontStyle: 'italic', lineHeight: 1.5, flex: 1, minWidth: '200px' }}>
+                      <div style={{ fontSize: '13px', color: '#064E3B', fontStyle: 'italic', lineHeight: 1.5, marginBottom: '8px' }}>
                         "{d.quote}"
+                      </div>
+                      <div style={{ fontSize: '14px', color: '#059669', lineHeight: 1.5, fontWeight: 500 }}>
+                        {d.note}
                       </div>
                     </div>
                   ))}
@@ -674,21 +669,14 @@ export default function Page() {
                     <div key={i} style={{
                       background: sectionStyles.shallow.cardBg, borderRadius: '16px',
                       padding: '20px 24px',
-                      borderLeft: `4px solid ${patternColors[c.pattern] || sectionStyles.shallow.border}`,
+                      borderLeft: `4px solid ${sectionStyles.shallow.border}`,
                     }}>
-                      <div style={{
-                        display: 'inline-block', fontSize: '10px', fontWeight: 700,
-                        letterSpacing: '0.1em', textTransform: 'uppercase',
-                        color: patternColors[c.pattern] || '#E11D48', marginBottom: '10px',
-                      }}>
-                        {c.pattern}
-                      </div>
                       {c.targetPhrase && c.targetPhrase.length < 80 && (
                         <div style={{ fontSize: '13px', color: '#9F1239', fontStyle: 'italic', marginBottom: '10px', lineHeight: 1.5 }}>
                           "{c.targetPhrase}"
                         </div>
                       )}
-                      <div style={{ fontSize: '15px', color: '#4C0519', lineHeight: 1.55 }}>
+                      <div style={{ fontSize: '15px', color: '#4C0519', lineHeight: 1.6 }}>
                         {c.challenge}
                       </div>
                     </div>
