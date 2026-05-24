@@ -107,15 +107,15 @@ export default function AboutPage() {
 
         <div style={{ fontSize: '17px', lineHeight: 1.65, color: '#334155' }}>
           <p style={{ marginBottom: '20px' }}>
-            Push exists because of an observation. The more I used AI to finish my sentences, the less I noticed when my sentences were borrowed in the first place. I was getting <strong style={{ color: '#0F172A' }}>faster and shallower at the same time</strong>.
+            Writing used to be how you figured out what you actually thought. Not publishing — just putting an idea into sentences forced you to see where it fell apart. You noticed the belief you had picked up from someone else. You caught yourself repeating something you had heard rather than something you had worked out. That friction was useful.
           </p>
 
           <p style={{ marginBottom: '20px' }}>
-            The default use of AI is convenience. It completes, paraphrases, summarizes, polishes. Helpful, often necessary, sometimes essential. Most of what we believe was handed to us by someone else, and we rarely interrogate the source.
+            Then we got very good at removing it. Autocomplete finishes your sentence. Paraphrase tools clean your argument. "Improve this writing" smooths it over before you have to sit with the rough version. I started using these tools and noticed something: I was getting <strong style={{ color: '#0F172A' }}>faster and shallower at the same time</strong>.
           </p>
 
           <p style={{ marginBottom: '32px' }}>
-            Push is a <strong style={{ color: '#0F172A' }}>contrarian bet</strong>. While most AI products race to make thinking easier, Push goes the other way. It bets that as AI commoditizes the output of thinking, originality becomes the scarce resource. Same technology, opposite job. Instead of completing your thinking, it interrupts it. Instead of summarizing what you wrote, it questions it.
+            Push is a <strong style={{ color: '#0F172A' }}>contrarian bet</strong>. Same technology, opposite job. Instead of finishing your thinking, it questions it. Instead of smoothing over the rough parts, it points at them.
           </p>
 
           <div className="pull-quote" style={{
@@ -446,9 +446,9 @@ export default function AboutPage() {
           </div>
 
           <p style={{
-            fontSize: '14px',
-            color: '#94A3B8',
-            fontStyle: 'italic',
+            fontSize: '15px',
+            color: '#334155',
+            fontWeight: 500,
             marginBottom: '56px',
             textAlign: 'center',
           }}>
