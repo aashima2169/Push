@@ -62,7 +62,7 @@ export async function POST(req) {
       console.log('[push] insert payload keys:', Object.keys(insertPayload));
 
       const { data: pushData, error: pushErr, status: pushStatus, statusText: pushStatusText } =
-        await supabaseAdmin.from('pushes').insert(insertPayload).select();
+        await supabaseAdmin.from('push_events').insert(insertPayload).select();
 
       if (pushErr) {
         console.error('[push] !!! SUPABASE INSERT FAILED !!!');
@@ -79,7 +79,7 @@ export async function POST(req) {
       }
 
       const { error: sessErr, status: sessStatus } =
-        await supabaseAdmin.from('sessions').upsert(
+        await supabaseAdmin.from('push_sessions').upsert(
           { visitor_id: visitorId || 'unknown', last_seen_at: new Date().toISOString() },
           { onConflict: 'visitor_id', ignoreDuplicates: false }
         );
