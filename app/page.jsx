@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from 'react';
 import {
   Sparkles, ArrowRight, Loader2, Plus, Minus,
   Telescope, Brain, MoveRight, CheckCircle2, ArrowUpRight,
-  Layers, X, ChevronDown, ChevronUp,
+  Layers, X, ChevronDown, ChevronUp, Trash2, FileText,
 } from 'lucide-react';
 
 function getVisitorId() {
@@ -47,7 +47,7 @@ And why that?
 And why that?
 
 
-Once more — why?
+Once more, why?
 
 `,
   },
@@ -82,14 +82,11 @@ The mechanism that actually explains the difference:
   },
 ];
 
-// Check if text still meaningfully contains the structure's headings
 function textMatchesStructure(text, structureIndex) {
   if (structureIndex === null) return false;
   const template = STRUCTURES[structureIndex].template;
-  // Extract the heading lines (those that end with ?:)
   const headings = template.split('\n').filter(line => line.trim().length > 0);
   if (headings.length === 0) return false;
-  // Consider it "still using" if at least 2/3 of the original headings are present
   const present = headings.filter(h => text.includes(h.trim())).length;
   return present >= Math.ceil(headings.length * 0.66);
 }
@@ -115,25 +112,18 @@ const patternColors = {
   Restating:           '#7C2D12',
 };
 
-function ThoughtBubble() {
+function PushLogo({ size = 22 }) {
   return (
-    <svg width="180" height="180" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
+    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
       <defs>
-        <linearGradient id="bubble-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <linearGradient id="logo-grad" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor="#A78BFA" />
           <stop offset="100%" stopColor="#7C3AED" />
         </linearGradient>
-        <linearGradient id="bubble-fill" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#FFFFFF" />
-          <stop offset="100%" stopColor="#EEF2FF" />
-        </linearGradient>
       </defs>
-      <ellipse cx="110" cy="80" rx="70" ry="55" fill="url(#bubble-fill)" stroke="url(#bubble-grad)" strokeWidth="3" />
-      <circle cx="55" cy="145" r="14" fill="url(#bubble-fill)" stroke="url(#bubble-grad)" strokeWidth="2.5" />
-      <circle cx="30" cy="170" r="7" fill="url(#bubble-fill)" stroke="url(#bubble-grad)" strokeWidth="2" />
-      <path d="M85 70 L88 78 L96 81 L88 84 L85 92 L82 84 L74 81 L82 78 Z" fill="#7C3AED" />
-      <path d="M130 85 L132 90 L137 92 L132 94 L130 99 L128 94 L123 92 L128 90 Z" fill="#A78BFA" />
-      <circle cx="110" cy="60" r="3" fill="#C4B5FD" />
+      <circle cx="16" cy="16" r="14" stroke="url(#logo-grad)" strokeWidth="2.2" fill="none" opacity="0.35" />
+      <circle cx="16" cy="16" r="9" stroke="url(#logo-grad)" strokeWidth="2.2" fill="none" opacity="0.6" />
+      <circle cx="16" cy="16" r="4" fill="url(#logo-grad)" />
     </svg>
   );
 }
@@ -191,13 +181,13 @@ function BiasChip({ bias }) {
         border: 'none', borderRadius: '999px',
         padding: '8px 14px', fontSize: '13px', fontWeight: 600,
         cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px',
-        transition: 'all 0.15s', fontFamily: 'inherit',
+        transition: 'all 0.15s', fontFamily: 'inherit', minHeight: '36px',
       }}>
         {bias.name}
         {expanded ? <Minus size={12} strokeWidth={2.5} /> : <Plus size={12} strokeWidth={2.5} />}
       </button>
       {expanded && (
-        <div className="fade-in" style={{
+        <div className="fade-in bias-expanded" style={{
           marginTop: '12px', padding: '16px 18px', background: '#FFFBEB',
           borderRadius: '14px', border: '1px solid #FEF3C7', maxWidth: '480px',
         }}>
@@ -232,7 +222,8 @@ function StructurePicker({ onSelect, onClose, currentStructureIndex }) {
         </div>
         <button onClick={onClose} style={{
           background: 'transparent', border: 'none', cursor: 'pointer',
-          padding: '4px', display: 'flex', alignItems: 'center', color: '#94A3B8',
+          padding: '8px', display: 'flex', alignItems: 'center', color: '#94A3B8',
+          minHeight: '32px', minWidth: '32px',
         }}>
           <X size={16} strokeWidth={2.5} />
         </button>
@@ -264,10 +255,78 @@ function StructurePicker({ onSelect, onClose, currentStructureIndex }) {
   );
 }
 
+// Collapsible "what you wrote" reference panel at the top of diagnosis
+function EntryReference({ topic, text }) {
+  const [expanded, setExpanded] = useState(false);
+  const preview = text.length > 100 ? text.substring(0, 100).trim() + '...' : text;
+  return (
+    <div style={{ marginBottom: '24px' }}>
+      <button onClick={() => setExpanded(!expanded)} className="entry-toggle">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, minWidth: 0 }}>
+          <FileText size={14} color="#64748B" strokeWidth={2.5} style={{ flexShrink: 0 }} />
+          <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
+            <div style={{
+              fontSize: '12px', fontWeight: 600, color: '#94A3B8',
+              marginBottom: '2px',
+            }}>
+              What you wrote
+            </div>
+            <div style={{
+              fontSize: '13px', color: '#475569',
+              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+            }}>
+              {topic ? `${topic} — ` : ''}{!expanded && preview}
+            </div>
+          </div>
+        </div>
+        {expanded
+          ? <ChevronUp size={16} color="#64748B" strokeWidth={2.5} style={{ flexShrink: 0 }} />
+          : <ChevronDown size={16} color="#64748B" strokeWidth={2.5} style={{ flexShrink: 0 }} />
+        }
+      </button>
+      {expanded && (
+        <div className="fade-in" style={{
+          background: '#F8FAFC', borderRadius: '14px', padding: '20px 22px',
+          marginTop: '8px', border: '1px solid #E2E8F0',
+        }}>
+          {topic && (
+            <div style={{
+              fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em',
+              textTransform: 'uppercase', color: '#94A3B8', marginBottom: '6px',
+            }}>
+              Topic
+            </div>
+          )}
+          {topic && (
+            <div style={{
+              fontSize: '15px', fontWeight: 600, color: '#0F172A', marginBottom: '16px',
+            }}>
+              {topic}
+            </div>
+          )}
+          <div style={{
+            fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em',
+            textTransform: 'uppercase', color: '#94A3B8', marginBottom: '6px',
+          }}>
+            Your thinking
+          </div>
+          <div style={{
+            fontSize: '14px', color: '#334155', lineHeight: 1.6,
+            whiteSpace: 'pre-wrap',
+          }}>
+            {text}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function Page() {
   const [prompt, setPrompt] = useState('');
   const [text, setText] = useState('');
   const [result, setResult] = useState(null);
+  const [submittedEntry, setSubmittedEntry] = useState(null); // snapshot of what was sent
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [visitorId, setVisitorId] = useState(null);
@@ -282,7 +341,6 @@ export default function Page() {
 
   useEffect(() => { setVisitorId(getVisitorId()); }, []);
 
-  // Auto-clear structure flag when text no longer matches the template
   useEffect(() => {
     if (currentStructure !== null && !textMatchesStructure(text, currentStructure)) {
       setCurrentStructure(null);
@@ -293,12 +351,9 @@ export default function Page() {
     if (result && resultRef.current) {
       setTimeout(() => resultRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
     }
-    // Set default expanded state based on what's in the result
     if (result) {
       const hasDeep = result.wentDeep?.length > 0;
       const hasShallow = result.stayedShallow?.length > 0;
-      // If both present, shallow expands (it's the action item).
-      // If only deep, deep expands.
       if (hasShallow) {
         setShallowExpanded(true);
         setDeepExpanded(false);
@@ -311,10 +366,12 @@ export default function Page() {
   }, [result]);
 
   const wordCount = text.trim().split(/\s+/).filter(Boolean).length;
+  const hasContent = text.trim().length > 0 || prompt.trim().length > 0;
 
   const analyze = async () => {
     if (!text.trim()) return;
     setLoading(true); setError(null); setResult(null);
+    setSubmittedEntry({ topic: prompt, text: text });
     try {
       const response = await fetch('/api/push', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -328,8 +385,8 @@ export default function Page() {
   };
 
   const applyStructure = (index) => {
-    const hasContent = text.trim().length > 20;
-    if (hasContent && !window.confirm('This will replace what you\'ve written. Continue?')) {
+    const meaningfulContent = text.trim().length > 20;
+    if (meaningfulContent && !window.confirm('This will replace what you\'ve written. Continue?')) {
       setShowPicker(false);
       return;
     }
@@ -350,10 +407,25 @@ export default function Page() {
     applyStructure(next);
   };
 
+  const clearAll = () => {
+    const meaningfulContent = text.trim().length > 20 || prompt.trim().length > 5;
+    if (meaningfulContent && !window.confirm('Clear everything you\'ve written?')) return;
+    setText('');
+    setPrompt('');
+    setCurrentStructure(null);
+    setResult(null);
+    setSubmittedEntry(null);
+    setError(null);
+    setTimeout(() => {
+      if (topicRef.current) topicRef.current.focus();
+    }, 50);
+  };
+
   const startWithPrompt = (newPrompt) => {
     setPrompt(newPrompt);
     setText('');
     setResult(null);
+    setSubmittedEntry(null);
     setCurrentStructure(null);
     setTimeout(() => {
       if (topicRef.current) topicRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -365,77 +437,65 @@ export default function Page() {
 
   return (
     <div>
-      <header style={{
-        padding: '24px 32px', display: 'flex', alignItems: 'center',
-        maxWidth: '1200px', margin: '0 auto',
+      <header className="page-header" style={{
+        padding: '24px 32px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        maxWidth: '1200px',
+        margin: '0 auto',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{
-            width: '42px', height: '42px', borderRadius: '12px',
-            background: 'linear-gradient(135deg, #1E1B4B 0%, #312E81 100%)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
-            <Sparkles size={22} color="#A78BFA" strokeWidth={2.5} />
-          </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <PushLogo size={28} />
           <span style={{
-            fontSize: '28px', fontWeight: 800,
+            fontSize: '26px', fontWeight: 800,
             background: 'linear-gradient(135deg, #4F46E5, #7C3AED)',
             WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
             letterSpacing: '-0.02em',
           }}>Push</span>
         </div>
+        <a href="/about" style={{
+          fontSize: '14px',
+          fontWeight: 600,
+          color: '#64748B',
+          textDecoration: 'none',
+        }} className="nav-link">
+          About
+        </a>
       </header>
 
-      <div style={{ padding: '8px 32px 48px', maxWidth: '1200px', margin: '0 auto' }}>
-        <div style={{
+      <div className="page-wrap" style={{ padding: '24px 32px 48px', maxWidth: '1200px', margin: '0 auto' }}>
+        <div className="hero-card" style={{
           background: 'linear-gradient(180deg, #EFF0FA 0%, #E5E7F9 100%)',
-          borderRadius: '32px', padding: 'clamp(32px, 5vw, 56px)',
-          position: 'relative', overflow: 'hidden',
+          borderRadius: '32px',
+          padding: 'clamp(40px, 6vw, 64px) clamp(32px, 5vw, 56px)',
         }}>
-          <div style={{
-            position: 'absolute', right: '32px', top: '32px',
-            display: 'none',
-          }} className="hero-illustration">
-            <ThoughtBubble />
-          </div>
-
-          <div style={{
-            display: 'inline-flex', alignItems: 'center', gap: '10px',
-            background: 'white', borderRadius: '999px', padding: '8px 16px 8px 12px',
-            marginBottom: '28px', boxShadow: '0 1px 3px rgba(15, 23, 42, 0.04)',
+          <h1 className="hero-headline" style={{
+            fontSize: 'clamp(36px, 5.5vw, 56px)',
+            fontWeight: 800,
+            lineHeight: 1.05,
+            letterSpacing: '-0.03em',
+            color: '#0F172A',
+            margin: '0 0 20px',
+            maxWidth: '820px',
           }}>
-            <div className="pulse-dot" style={{
-              width: '8px', height: '8px', borderRadius: '50%', background: '#10B981',
-            }} />
-            <span style={{
-              fontSize: '13px', fontWeight: 600, color: '#4F46E5',
-            }}>Ready when you are</span>
-          </div>
-
-          <div className="hero-illustration-mobile" style={{ display: 'block', marginBottom: '20px' }}>
-            <ThoughtBubble />
-          </div>
-
-          <h1 style={{
-            fontSize: 'clamp(36px, 5.5vw, 60px)', fontWeight: 800,
-            lineHeight: 1.05, letterSpacing: '-0.03em', color: '#0F172A',
-            margin: '0 0 18px', maxWidth: '780px',
-          }}>
-            Most thoughts aren't yours.{' '}
+            AI that{' '}
             <span style={{
               background: 'linear-gradient(135deg, #4F46E5, #7C3AED)',
               WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-            }}>Push tells you which ones.</span>
+            }}>interrupts</span>
+            {' '}your thinking. On purpose.
           </h1>
 
-          <p style={{
-            fontSize: '18px', lineHeight: 1.55, color: '#475569',
-            margin: '0 0 40px', maxWidth: '620px',
+          <p className="hero-subhead" style={{
+            fontSize: 'clamp(17px, 1.7vw, 19px)',
+            lineHeight: 1.5,
+            color: '#475569',
+            margin: '0 0 44px',
+            maxWidth: '640px',
+            fontWeight: 500,
           }}>
-            Write what you're thinking about. Push reads it back and tells you{' '}
-            <strong style={{ color: '#0F172A' }}>where you actually reasoned</strong>
-            {' — and '}
-            <strong style={{ color: '#0F172A' }}>where you were echoing something you picked up somewhere</strong>.
+            Stop sounding like everyone else. Start sounding like you.
           </p>
 
           <label htmlFor="topic" className="push-label">The topic or belief you want to examine</label>
@@ -447,10 +507,10 @@ export default function Page() {
           />
 
           <div style={{
-            display: 'flex', alignItems: 'baseline', justifyContent: 'space-between',
-            marginTop: '28px', marginBottom: '10px', flexWrap: 'wrap', gap: '8px',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            marginTop: '28px', marginBottom: '10px', flexWrap: 'wrap', gap: '12px',
           }}>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: '14px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
               <label htmlFor="thinking" className="push-label" style={{ margin: 0 }}>Your thinking</label>
               <button
                 onClick={() => setShowPicker(!showPicker)}
@@ -459,6 +519,12 @@ export default function Page() {
                 <Layers size={13} strokeWidth={2.5} />
                 {currentStructure !== null ? `Using: ${STRUCTURES[currentStructure].name}` : 'Need a structure?'}
               </button>
+              {hasContent && (
+                <button onClick={clearAll} className="clear-trigger">
+                  <Trash2 size={13} strokeWidth={2.5} />
+                  Clear
+                </button>
+              )}
             </div>
             {wordCount > 0 && (
               <span style={{ fontSize: '12px', color: '#64748B', fontWeight: 500 }}>
@@ -478,7 +544,7 @@ export default function Page() {
           <textarea
             id="thinking" ref={textareaRef} value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="Where did this thought come from? What's the strongest case against it? Where does your own life confirm or contradict it? Don't fill the page — interrogate yourself."
+            placeholder="Where did this thought come from? What's the strongest case against it? Where does your own life confirm or contradict it? Don't fill the page, interrogate yourself."
             rows={12}
             className="push-textarea"
           />
@@ -534,12 +600,17 @@ export default function Page() {
       )}
 
       {result && (
-        <div ref={resultRef} style={{ padding: '8px 32px 96px', maxWidth: '1200px', margin: '0 auto' }}>
-          <div className="fade-in" style={{
+        <div ref={resultRef} className="page-wrap" style={{ padding: '8px 32px 96px', maxWidth: '1200px', margin: '0 auto' }}>
+          <div className="fade-in result-card" style={{
             background: 'white', borderRadius: '32px',
             padding: 'clamp(32px, 5vw, 56px)',
             boxShadow: '0 4px 24px rgba(15, 23, 42, 0.04)',
           }}>
+            {/* Reference panel at top */}
+            {submittedEntry && (
+              <EntryReference topic={submittedEntry.topic} text={submittedEntry.text} />
+            )}
+
             {depth && (
               <div style={{
                 display: 'inline-flex', alignItems: 'center', gap: '8px',
@@ -553,7 +624,7 @@ export default function Page() {
               </div>
             )}
 
-            <p style={{
+            <p className="result-summary" style={{
               fontSize: 'clamp(20px, 2.5vw, 26px)', lineHeight: 1.35,
               color: '#0F172A', margin: '0 0 40px',
               fontWeight: 600, letterSpacing: '-0.015em', maxWidth: '780px',
@@ -678,7 +749,7 @@ export default function Page() {
                           {m.framing}
                         </div>
                       </div>
-                      <div style={{
+                      <div className="start-badge" style={{
                         display: 'inline-flex', alignItems: 'center', gap: '6px',
                         fontSize: '13px', fontWeight: 600, color: '#4F46E5',
                         flexShrink: 0,
