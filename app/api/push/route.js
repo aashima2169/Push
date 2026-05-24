@@ -46,6 +46,7 @@ export async function POST(req) {
 
     // === Stage 2: Supabase logging ===
     console.log('[push] attempting Supabase insert...');
+    let pushId = null;
     try {
       const wordCount = text.trim().split(/\s+/).filter(Boolean).length;
       const insertPayload = {
@@ -74,6 +75,7 @@ export async function POST(req) {
       } else {
         console.log('[push] insert returned data:', pushData ? `${pushData.length} row(s)` : 'no data');
         console.log('[push] insert succeeded (status:', pushStatus, ')');
+        if (pushData?.[0]?.id) pushId = pushData[0].id;
       }
 
       const { error: sessErr, status: sessStatus } =
@@ -95,7 +97,7 @@ export async function POST(req) {
     }
 
     console.log('[push] === REQUEST END ===');
-    return NextResponse.json(result);
+    return NextResponse.json({ ...result, pushId });
   } catch (err) {
     console.error('[push] TOP-LEVEL ERROR:', err.message);
     console.error('[push]', err.stack);
