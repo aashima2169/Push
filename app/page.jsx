@@ -93,9 +93,9 @@ function textMatchesStructure(text, structureIndex) {
 
 const sectionStyles = {
   deep:    { color: '#059669', bg: '#D1FAE5', cardBg: '#F0FDF4', border: '#10B981', icon: CheckCircle2, label: 'Where you went deeper' },
-  shallow: { color: '#E11D48', bg: '#FFE4E6', cardBg: '#FFF1F2', border: '#F43F5E', icon: Telescope,    label: 'Where you stayed on the surface' },
+  shallow: { color: '#E11D48', bg: '#FFE4E6', cardBg: '#FFF1F2', border: '#F43F5E', icon: Telescope,    label: 'Where your brain hit the wall' },
   biases:  { color: '#D97706', bg: '#FEF3C7', cardBg: '#FFFBEB', border: '#F59E0B', icon: Brain,        label: 'Biases showing up' },
-  next:    { color: '#4F46E5', bg: '#E0E7FF', cardBg: '#EEF2FF', border: '#6366F1', icon: MoveRight,    label: 'Keep digging' },
+  next:    { color: '#4F46E5', bg: '#E0E7FF', cardBg: '#EEF2FF', border: '#6366F1', icon: MoveRight,    label: 'Push through' },
 };
 
 const depthStyles = {
@@ -705,7 +705,7 @@ export default function Page() {
                     <MoveRight size={13} color={sectionStyles.next.color} strokeWidth={2.5} />
                   </div>
                   <span style={{ fontSize: '13px', fontWeight: 600, color: sectionStyles.next.color }}>
-                    Keep digging
+                    Push through
                   </span>
                 </div>
                 <div style={{ display: 'grid', gap: '12px' }}>
