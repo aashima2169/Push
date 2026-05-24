@@ -95,7 +95,7 @@ const sectionStyles = {
   deep:    { color: '#059669', bg: '#D1FAE5', cardBg: '#F0FDF4', border: '#10B981', icon: CheckCircle2, label: 'Where you went deeper' },
   shallow: { color: '#E11D48', bg: '#FFE4E6', cardBg: '#FFF1F2', border: '#F43F5E', icon: Telescope,    label: 'Where you stayed on the surface' },
   biases:  { color: '#D97706', bg: '#FEF3C7', cardBg: '#FFFBEB', border: '#F59E0B', icon: Brain,        label: 'Biases showing up' },
-  next:    { color: '#4F46E5', bg: '#E0E7FF', cardBg: '#EEF2FF', border: '#6366F1', icon: MoveRight,    label: 'Continue thinking' },
+  next:    { color: '#4F46E5', bg: '#E0E7FF', cardBg: '#EEF2FF', border: '#6366F1', icon: MoveRight,    label: 'Keep digging' },
 };
 
 const depthStyles = {
@@ -617,20 +617,12 @@ export default function Page() {
                 background: depth.bg, color: depth.color,
                 padding: '6px 14px', borderRadius: '999px',
                 fontSize: '13px', fontWeight: 600,
-                marginBottom: '20px',
+                marginBottom: '32px',
               }}>
                 <Sparkles size={13} strokeWidth={2.5} />
                 {result.depthLabel}
               </div>
             )}
-
-            <p className="result-summary" style={{
-              fontSize: 'clamp(20px, 2.5vw, 26px)', lineHeight: 1.35,
-              color: '#0F172A', margin: '0 0 40px',
-              fontWeight: 600, letterSpacing: '-0.015em', maxWidth: '780px',
-            }}>
-              {result.summary}
-            </p>
 
             {result.wentDeep?.length > 0 && (
               <CollapsibleSection
@@ -713,7 +705,7 @@ export default function Page() {
                     <MoveRight size={13} color={sectionStyles.next.color} strokeWidth={2.5} />
                   </div>
                   <span style={{ fontSize: '13px', fontWeight: 600, color: sectionStyles.next.color }}>
-                    Continue thinking
+                    Keep digging
                   </span>
                 </div>
                 <div style={{ display: 'grid', gap: '12px' }}>
