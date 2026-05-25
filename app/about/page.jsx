@@ -436,15 +436,7 @@ export default function AboutPage() {
             </section>
           </div>
 
-          <p style={{
-            fontSize: '15px',
-            color: '#334155',
-            fontWeight: 500,
-            marginBottom: '56px',
-            textAlign: 'center',
-          }}>
-            That gap between what I thought I was saying and what Push showed me I'd written. That's the product.
-          </p>
+      
 
           <h2 style={{
             fontSize: '24px',
