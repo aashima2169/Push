@@ -118,7 +118,7 @@ export default function AboutPage() {
           </p>
 
           <p style={{ marginBottom: '32px' }}>
-            Push is a <strong style={{ color: '#0F172A' }}>contrarian bet</strong>. Same technology, opposite job. Instead of finishing your thinking, it questions it. Instead of smoothing over the rough parts, it points at them.
+            Push is a <strong style={{ color: '#0F172A' }}>contrarian bet</strong>. Most AI agrees with you — it completes what you started, smooths what you wrote, and makes your argument sound cleaner than it is. Push does the opposite. Write what you think. Push argues back.
           </p>
 
           <div className="pull-quote" style={{
