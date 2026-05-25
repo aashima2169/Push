@@ -500,12 +500,11 @@ export default function Page() {
             margin: '0 0 20px',
             maxWidth: '820px',
           }}>
-            AI that{' '}
+            Most AI agrees with you.{' '}
             <span style={{
               background: 'linear-gradient(135deg, #4F46E5, #7C3AED)',
               WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-            }}>interrupts</span>
-            {' '}your thinking. On purpose.
+            }}>Push doesn't.</span>
           </h1>
 
           <p className="hero-subhead" style={{
